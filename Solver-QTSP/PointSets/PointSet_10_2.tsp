@@ -1,0 +1,17 @@
+NAME: PointSet_Angle_10_2
+TYPE: TSP
+COMMENT: Points chosen discrete uniformly at random out of ${0, \ldots, 500}^2$.
+DIMENSION: 10
+EDGE_WEIGHT_TYPE: EUC_2D
+NODE_COORD_SECTION
+1 129 127
+2 176 368
+3 81 303
+4 222 228
+5 64 120
+6 226 114
+7 93 20
+8 8 396
+9 392 249
+10 486 125
+EOF
