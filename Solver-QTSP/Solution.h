@@ -17,6 +17,12 @@ public:
     double biasedFitness; // Biased fitness of the solution
     vector<int> ordNodeLs; // using for LS
     Node* depot;
+    Node* nodeU;
+    Node* uPred;
+    Node* uSuc;
+    Node* nodeV;
+    Node* vPred;
+    Node* vSuc;
     Solution(Param* _pr) {
         pr = _pr;
         n = pr->numClient - 1;//not cointain depot
@@ -92,5 +98,60 @@ public:
             nodes[idV]->pred = nodes[idU];
         }
         updateInfo();
+        reinitNegiborSet();
+    }
+
+    void reinitNegiborSet() {
+        set<DI> sDis;
+        int u, v, vSuc;
+        for (int i = 1; i <= n; ++i) {
+            sDis.clear();
+            u = nodes[i]->idxClient;
+            for (int j = 1; j <= n; j++)if (i != j) {
+                v = nodes[j]->idxClient;
+                vSuc = nodes[j]->suc->idxClient;
+                if (vSuc == u)vSuc = nodes[j]->suc->suc->idxClient;
+                sDis.insert(DI(pr->costs[u][v][vSuc], v));
+            }
+            nodes[i]->moves.clear();
+            for (auto val : sDis) {
+                nodes[i]->moves.push_back(val.sc);
+                if (nodes[i]->moves.size() == pr->maxNeibor)break;                    
+            }
+        }        
+    }
+
+    // insert node u after node v
+    void insertNode(Node* u, Node* v)
+    {
+        if (u->pred != v && u != v)
+        {
+            u->pred->suc = u->suc;
+            u->suc->pred = u->pred;
+            v->suc->pred = u;
+            u->pred = v;
+            u->suc = v->suc;
+            v->suc = u;
+            u->rou = v->rou;
+        }
+    }
+
+    void updateObj() {
+        shuffle(ordNodeLs.begin(), ordNodeLs.end(), pr->Rng.generator);
+        bool isFinished = false;
+        while (!isFinished) {
+            isFinished = true;
+            for (int posU = 0; posU < ordNodeLs.size(); ++posU) {
+                nodeU = nodes[ordNodeLs[posU]];
+                uSuc = nodeU->suc;
+                uPred = nodeU->pred;
+                for (int posV = 0; posV < nodeU->moves.size(); ++posV) {
+                    nodeV = nodes[nodeU->moves[posV]];
+                    vSuc = nodeV->suc;
+                    vPred = nodeV->pred;
+
+                }
+            }
+        }
     }
 };

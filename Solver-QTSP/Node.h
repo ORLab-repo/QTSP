@@ -14,9 +14,9 @@ public:
     //vector <SeqData*> seqj_i; // data for (j,i) (for the same subsequence as i_j, but reversed)    
     int demand;    
     double culCost;    
-    vector<int> movesLoc; //init based on correlation measure for locations (still contain the index of customer)    
+    vector<int> moves; //init based on correlation measure for locations (still contain the index of customer)    
     int idxClient = -1;
-    int idxLoc = -1;
+    /*int idxLoc = -1;*/
 
     Node() {
         isDepot = false;        
@@ -27,6 +27,6 @@ public:
     }
 
     ~Node() {        
-        movesLoc.clear();        
+        moves.clear();        
     };
 };
