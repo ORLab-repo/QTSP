@@ -91,22 +91,29 @@ public:
 		int uPred = -1, vSuc = -1;
 		for (int i = 0; i < seqs.size() - 1; ++i) {
 			u = seqs[i]->lastnode;		
-			uPred = seqs[i]->beforeLaNode;
-			if (uPred == -1) {
-				if (i != 0)uPred = seqs[i - 1]->lastnode;
-				else uPred = -1;
-			}
+			uPred = seqs[i]->beforeLaNode;			
 			v = seqs[i + 1]->firstnode;
 			vSuc = seqs[i + 1]->afterFiNode;
-			if (vSuc == -1) {
-				if (i + 2 != seqs.size())vSuc = seqs[i + 2]->afterFiNode;
-				else vSuc = -1;
+			if (uPred == -1) {
+				if (i - 1 >= 0)uPred = seqs[i - 1]->lastnode;
+				else uPred = u;
 			}
-			costR += seqs[i + 1]->cost;			
-			//totalF = (totalF & seqs[i + 1]->F) & (totalE + pr->times[u][v] <= seqs[i + 1]->L) & (loadR <= pr->Q) & (costR < oo);
-			//if (!totalF)return oo;// only use for checking feasible solution			
-			return costR;
+			if (vSuc == -1) {
+				/*if (i + 2 < seqs.size())vSuc = seqs[i + 2]->firstnode;
+				else vSuc = v;*/
+				vSuc = v;
+			}
+			costR += pr->costs[uPred][u][v] + pr->costs[u][v][vSuc];
+			costR += seqs[i + 1]->cost;									
 		}
+		// add the cost of tuple (preDepot Depot sucDepot):
+		int predDep = seqs.back()->beforeLaNode;
+		int sucDep = seqs[0]->firstnode;
+		int dep = seqs[0]->afterFiNode;
+		if (predDep == -1)predDep = seqs[seqs.size() - 2]->lastnode;
+		if (sucDep == -1)sucDep = seqs[1]->firstnode;
+		costR += pr->costs[predDep][dep][sucDep];
+		return costR;
 	}
 
 private:

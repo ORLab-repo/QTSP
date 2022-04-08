@@ -195,7 +195,6 @@ public:
         else {
             resSeq->cost = endNode->seq0_i - startNode->suc->seq0_i;
         }
-
     }
     //Or-opt
     bool move1() {
@@ -204,6 +203,36 @@ public:
     }
     //String exchange
     //2-opt
+    bool TwoOptMove() {
+        if (nodeU->posInSol > nodeV->posInSol)return false;//U V can solve in swap
+        if (uSuc == nodeV)return false;
+        valSeq[1] = nodeU->seq0_i;
+        constructSeqData(nodeV, uSuc, valSeq[2]);
+        valSeq[3] = vSuc->seqi_n;
+        mySeq.clear();
+        for (int i = 1; i <= 3; ++i)mySeq.push_back(valSeq[i]);
+        double newCost = seqDep->evaluation(mySeq);
+        if (newCost - cost > -MY_EPSILON)return false;
+        //update route structure:
+        Node* startNode = nodeU;
+        Node* endNode = nodeV;
+        while (startNode != uSuc)
+        {
+            Node* tempNode = endNode->pred;
+            startNode->suc = endNode;
+            endNode->pred = startNode;
+            startNode = endNode;
+            endNode = tempNode;
+        }
+        uSuc->suc = vSuc;
+        vSuc->pred = uSuc;
+        updateInfo();
+        if (abs(newCost - cost) > MY_EPSILON) {
+            cout << "bug 2-opt\n";
+            assert(false);
+        }
+        return true;
+    }
 
     void setLocalValU() {        
         uSuc = nodeU->suc;
