@@ -14,6 +14,9 @@ public:
     SeqData* seqi_0;
     SeqData* seqi_n;
     SeqData* seqn_i;
+    SeqData* seqi_i;
+    SeqData* seqi_j;
+    SeqData* seqj_i;
     //vector <SeqData*> seqi_j; // data for (i,j) with j > i
     //vector <SeqData*> seqj_i; // data for (j,i) (for the same subsequence as i_j, but reversed)    
     int demand;    

@@ -44,7 +44,7 @@ Param* read_Ins(string path, string type) {
             );            
         }        
     }
-    cout << "finish reading";
+    cout << "finish reading\n";
     //cal distance:    
     double angle;
     for (int i = 0; i < pr->numLoc; ++i) {        
