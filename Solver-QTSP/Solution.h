@@ -7,7 +7,7 @@ public:
     vector<int> giantT;//giant tour
 	vector<Node*> nodes;// for nodes
     Param* pr;    
-    int cost;// objective
+    double cost;// objective
     int n;// number of customers    
     bool isFinished;//used for LS
     string typeIns;
@@ -29,6 +29,7 @@ public:
     Node* vPred;
     Node* vSuc;
     int nodeUIdx, nodeVIdx, predUIdx, predVIdx, sucUIdx, sucVIdx;
+    int nbMove1 = 0, nbMove2 = 0, nbMove3 = 0, nbMove4 = 0, nbMove5 = 0, nbMove6 = 0, nbMove7 = 0;
     Solution(Param* _pr) {
         pr = _pr;
         n = pr->numLoc - 1;//not cointain depot
@@ -42,13 +43,14 @@ public:
         }
         nodes[n + 1]->idxClient = 0;        
         depot = nodes[n + 1];        
+        depot->isDepot = true;
         depot->posInSol = 0;
         int maxSizeSeq = 7 * n + 1;
         SeqData* myseqDatas = new SeqData[maxSizeSeq];
         for (int i = 0; i < maxSizeSeq; ++i)myseqDatas[i].pr = _pr;
         seqSet = myseqDatas;
         int posSeq = 0;
-        for (int i = 1; i <= n + 1; ++i) {
+        for (int i = 1; i <= n + 1; ++i) {            
             nodes[i]->seq0_i = &myseqDatas[posSeq];
             nodes[i]->seqi_0 = &myseqDatas[posSeq + 1];
             nodes[i]->seqi_n = &myseqDatas[posSeq + 2];
@@ -64,6 +66,8 @@ public:
         seqDep->init(0);
         depot->seqi_i = seqDep;
         for (int i = 1; i <= 7; ++i)valSeq[i] = new SeqData(_pr);
+        predecessors.resize(n + 1);
+        successors.resize(n + 1);
     }
     void genGiantT() {
         for (int i = 1; i <= n; ++i)giantT[i] = i;
@@ -101,24 +105,24 @@ public:
         }
         return result / (double)maxSize;
     }
-    void updateInfo() {
+    void updateInfo() {        
         Node* valNode = depot;        
         valNode->seq0_i = seqDep;
-        valNode->seqi_0 = seqDep;
-        valNode->seqi_j->concatOneAfter(valNode->seqi_i, valNode->suc->idxClient);
+        valNode->seqi_0 = seqDep;        
+        valNode->seqi_j->concatOneAfter(valNode->seqi_i, valNode->suc->idxClient);        
         valNode->seqj_i->concatOneAfter(valNode->suc->seqi_i, valNode->idxClient);
-        int u, v;
+        int u, v;        
         //update seqdata (0->i, i->0):
         while (valNode != depot->pred)
         {    
             valNode = valNode->suc;
-            v = valNode->idxClient;
+            v = valNode->idxClient;            
             /*if (valNode->pred == depot)valNode->culCost = 0;
             else valNode->culCost = valNode->pred->culCost + pr->costs[valNode->pred->pred->idxClient][valNode->pred->idxClient][valNode->idxClient]; */
             valNode->seq0_i->concatOneAfter(valNode->pred->seq0_i, v);
             valNode->seqi_0->concatOneBefore(valNode->pred->seqi_0, v);
             valNode->seqi_j->concatOneAfter(valNode->seqi_i, valNode->suc->idxClient);
-            valNode->seqj_i->concatOneAfter(valNode->suc->seqi_i, valNode->idxClient);
+            valNode->seqj_i->concatOneAfter(valNode->suc->seqi_i, valNode->idxClient);           
             valNode->posInSol = valNode->pred->posInSol + 1;
         }
         //update seqdata(i->n, n->i):
@@ -130,7 +134,7 @@ public:
             valNode = valNode->pred;
             v = valNode->idxClient;
             valNode->seqn_i->concatOneAfter(valNode->suc->seqn_i, v);
-            valNode->seqi_n->concatOneAfter(valNode->suc->seqi_n, v);
+            valNode->seqi_n->concatOneBefore(valNode->suc->seqi_n, v);            
         }
     }    
     /**/
@@ -148,12 +152,46 @@ public:
             nodes[idU]->suc = nodes[idV];
             nodes[idV]->pred = nodes[idU];
         }
-        updateInfo();
-        reinitNegiborSet();
+        updateInfo();        
+        reinitNegiborSet();        
+        for (int i = 1; i <= n; ++i) {
+            predecessors[i] = nodes[i]->pred->idxClient;
+            successors[i] = nodes[i]->suc->idxClient;
+        }
+    }
+
+    void cvGiantT() {
+        Node* val = depot;
+        int pos = 0;
+        do {
+            if (val->idxClient != 0)giantT[++pos] = val->idxClient;
+            val = val->suc;
+        } while (val != depot);
+        if (pr->isDebug) {
+            int* dd = new int[n + 1];
+            for (int i = 1; i <= n; ++i)dd[i] = 0;
+            for (int i = 1; i <= n; ++i)dd[giantT[i]] = 1;
+            for (int i = 1; i <= n; ++i)if (dd[i] == 0) {
+                throw "Wrong here 1";
+            }
+            if (pos != n) {
+                throw "Wrong here 2";
+            }
+            delete[] dd;
+        }
+    }
+
+    double calCostWtUpdate() {
+        cvGiantT();
+        double res = pr->costs[giantT[n]][giantT[0]][giantT[1]] + pr->costs[giantT[n - 1]][giantT[n]][giantT[0]];
+        for (int i = 0; i <= n - 2; ++i) {
+            res += pr->costs[giantT[i]][giantT[i + 1]][giantT[i + 2]];
+        }       
+        return res;
     }
 
     void reinitNegiborSet() {
-        set<DI> sDis;
+        /*set<DI> sDis;
         int u, v, vSuc;
         for (int i = 1; i <= n; ++i) {
             sDis.clear();
@@ -162,14 +200,14 @@ public:
                 v = nodes[j]->idxClient;
                 vSuc = nodes[j]->suc->idxClient;
                 if (vSuc == u)vSuc = nodes[j]->suc->suc->idxClient;
-                sDis.insert(DI(pr->costs[u][v][vSuc], v));
+                sDis.insert(DI(pr->costs[v][u][vSuc], j));
             }
-            nodes[i]->moves.clear();
+            if(nodes[i]->moves.size() != 0)nodes[i]->moves.clear();
             for (auto val : sDis) {
                 nodes[i]->moves.push_back(val.sc);
                 if (nodes[i]->moves.size() == pr->maxNeibor)break;                    
             }
-        }        
+        }        */
     }
 
     //swap two nodes u and v
@@ -204,6 +242,15 @@ public:
             /*u->rou = v->rou;*/
         }
     }
+
+    void showR() {
+        Node* val = this->depot;
+        do {
+            cout << val->idxClient << " ";
+            val = val->suc;
+        } while (val != this->depot);
+        cout << "\n";
+    }
     
     /*SeqData*/
     void constructSeqData(Node* startNode, Node* endNode, SeqData* resSeq) {        
@@ -220,61 +267,96 @@ public:
             resSeq->afterFiNode = startNode->pred->idxClient;
             resSeq->beforeLaNode = endNode->suc->idxClient;
             //symetric case:
-            resSeq->cost = startNode->seq0_i - endNode->suc->seq0_i;
+            resSeq->cost = startNode->seq0_i->cost - endNode->suc->seq0_i->cost;
         }
         else {
-            resSeq->cost = endNode->seq0_i - startNode->suc->seq0_i;
+            resSeq->cost = endNode->seq0_i->cost - startNode->suc->seq0_i->cost;                        
         }
     }
     //relocate u after v
     bool move1() {
-        cout << "move1\n";
+        if(pr->isDebug)cout << "move1\n";
         //nodeV in this case can be depot (arrival depot)
-        if (uSuc == nodeV)return false;        
+        if (nodeU == vSuc)return false;        
         int posUInSol = nodeU->posInSol;
-        int posVInSol = nodeV->posInSol;
-        if (nodeV->isDepot)posVInSol = nodeV->pred->posInSol + 1;
+        int posVInSol = nodeV->posInSol;        
         if (nodeU->posInSol < nodeV->posInSol) {
-            valSeq[1] = uPred->seq0_i;
-            constructSeqData(uSuc, vPred, valSeq[2]);            
-            valSeq[3] = nodeU->seqi_i;
-            valSeq[4] = nodeV->seqi_n;
+            valSeq[1]->copy(uPred->seq0_i);
+            constructSeqData(uSuc, nodeV, valSeq[2]);            
+            valSeq[3]->copy(nodeU->seqi_i);
+            valSeq[4]->copy(vSuc->seqi_n);
         }
         else {
-            valSeq[1] = vPred->seq0_i;
-            valSeq[2] = nodeU->seqi_i;
-            constructSeqData(nodeV, uPred, valSeq[3]);
-            valSeq[4] = uSuc->seqi_n;
+            valSeq[1]->copy(nodeV->seq0_i);
+            valSeq[2]->copy(nodeU->seqi_i);
+            constructSeqData(vSuc, uPred, valSeq[3]);
+            valSeq[4]->copy(uSuc->seqi_n);
+        }
+        mySeq.clear();
+        for (int i = 1; i <= 4; ++i)mySeq.push_back(valSeq[i]);
+        double newCost = seqDep->evaluation(mySeq);
+        if (newCost - cost > -MY_EPSILON)return false;        
+        insertNode(nodeU, nodeV);           
+        updateInfo();                
+        nbMove1++;
+        isFinished = false;
+        cost = newCost;                
+        if (pr->isDebug && abs(cost - calCostWtUpdate()) > MY_EPSILON) {                                                
+            throw "bug in move1";
+        }
+        return true;
+    }
+
+    //relocate u Suc after V
+    bool move2() {
+        if (pr->isDebug)cout << "move2\n";
+        if (nodeU == vSuc || nodeV == uSuc || uSuc->isDepot)return false;
+        int posUInSol = nodeU->posInSol;
+        int posVInSol = nodeV->posInSol;        
+        if (nodeU->posInSol < nodeV->posInSol) {
+            valSeq[1]->copy(uPred->seq0_i);
+            constructSeqData(uSuc->suc, nodeV, valSeq[2]);
+            valSeq[3]->copy(nodeU->seqi_j);
+            valSeq[4]->copy(vSuc->seqi_n);
+        }
+        else {
+            valSeq[1]->copy(nodeV->seq0_i);
+            valSeq[2]->copy(nodeU->seqi_j);
+            constructSeqData(vSuc, uPred, valSeq[3]);
+            valSeq[4]->copy(uSuc->suc->seqi_n);
         }
         mySeq.clear();
         for (int i = 1; i <= 4; ++i)mySeq.push_back(valSeq[i]);
         double newCost = seqDep->evaluation(mySeq);
         if (newCost - cost > -MY_EPSILON)return false;
         insertNode(nodeU, nodeV);
+        insertNode(uSuc, nodeU);
         updateInfo();
+        nbMove2++;
         isFinished = false;
-        cost = newCost;        
+        cost = newCost;
+        if (pr->isDebug && abs(cost - calCostWtUpdate()) > MY_EPSILON) {
+            throw "bug in move2";
+        }
         return true;
     }
-
-    //relocate u Suc after V
-    bool move2() {
-        cout << "move2\n";
-        if (nodeU == vSuc || nodeV == uSuc || uSuc->suc == nodeV || uSuc->isDepot)return false;
+    //relocate sucU u after V
+    bool move3() {
+        if (pr->isDebug)cout << "move3\n";
+        if (nodeU == vSuc || nodeV == uSuc || uSuc->isDepot)return false;
         int posUInSol = nodeU->posInSol;
-        int posVInSol = nodeV->posInSol;
-        if (nodeV->isDepot)posVInSol = nodeV->pred->posInSol + 1;
+        int posVInSol = nodeV->posInSol;        
         if (nodeU->posInSol < nodeV->posInSol) {
-            valSeq[1] = uPred->seq0_i;
-            constructSeqData(uSuc->suc, vPred, valSeq[2]);
-            valSeq[3] = nodeU->seqi_j;
-            valSeq[4] = nodeV->seqi_n;
+            valSeq[1]->copy(uPred->seq0_i);
+            constructSeqData(uSuc->suc, nodeV, valSeq[2]);
+            valSeq[3]->copy(nodeU->seqj_i);
+            valSeq[4]->copy(vSuc->seqi_n);
         }
         else {
-            valSeq[1] = vPred->seq0_i;
-            valSeq[2] = nodeU->seqi_j;
-            constructSeqData(nodeV, uPred, valSeq[3]);
-            valSeq[4] = uSuc->suc->seqi_n;
+            valSeq[1]->copy(nodeV->seq0_i);
+            valSeq[2]->copy(nodeU->seqj_i);
+            constructSeqData(vSuc, uPred, valSeq[3]);
+            valSeq[4]->copy(uSuc->suc->seqi_n);
         }
         mySeq.clear();
         for (int i = 1; i <= 4; ++i)mySeq.push_back(valSeq[i]);
@@ -283,81 +365,59 @@ public:
         insertNode(uSuc, nodeV);
         insertNode(nodeU, uSuc);
         updateInfo();
+        nbMove3++;
         isFinished = false;
         cost = newCost;
-        return true;
-    }
-    //relocate sucU u after V
-    bool move3() {
-        cout << "move3\n";
-        if (nodeU == vSuc || nodeV == uSuc || uSuc->suc == nodeV || uSuc->isDepot)return false;
-        int posUInSol = nodeU->posInSol;
-        int posVInSol = nodeV->posInSol;
-        if (nodeV->isDepot)posVInSol = nodeV->pred->posInSol + 1;
-        if (nodeU->posInSol < nodeV->posInSol) {
-            valSeq[1] = uPred->seq0_i;
-            constructSeqData(uSuc->suc, vPred, valSeq[2]);
-            valSeq[3] = nodeU->seqj_i;
-            valSeq[4] = nodeV->seqi_n;
+        if (pr->isDebug && abs(cost - calCostWtUpdate()) > MY_EPSILON) {
+            throw "bug in move3";
         }
-        else {
-            valSeq[1] = vPred->seq0_i;
-            valSeq[2] = nodeU->seqj_i;
-            constructSeqData(nodeV, uPred, valSeq[3]);
-            valSeq[4] = uSuc->suc->seqi_n;
-        }
-        mySeq.clear();
-        for (int i = 1; i <= 4; ++i)mySeq.push_back(valSeq[i]);
-        double newCost = seqDep->evaluation(mySeq);
-        if (newCost - cost > -MY_EPSILON)return false;
-        insertNode(nodeU, nodeV);
-        insertNode(uSuc, nodeU);
-        updateInfo();
-        isFinished = false;
-        cost = newCost;
         return true;
     }
     //Swaps moves:
     //swap u and v (u->pos < v->pos)
     bool move4() {
-        cout << "move4\n";
+        if (pr->isDebug)cout << "move4\n";
         if (nodeU == vPred || nodeU == vSuc)return false;        
-        valSeq[1] = uPred->seq0_i;
-        valSeq[2] = nodeV->seqi_i;
+        valSeq[1]->copy(uPred->seq0_i);
+        valSeq[2]->copy(nodeV->seqi_i);
         constructSeqData(uSuc, vPred, valSeq[3]);
-        valSeq[4] = nodeU->seqi_i;
-        valSeq[5] = vSuc->seqi_n;
+        valSeq[4]->copy(nodeU->seqi_i);
+        valSeq[5]->copy(vSuc->seqi_n);
         mySeq.clear();
         for (int i = 1; i <= 5; ++i)mySeq.push_back(valSeq[i]);
         double newCost = seqDep->evaluation(mySeq);
         if (newCost - cost > -MY_EPSILON)return false;
         swapNode(nodeU, nodeV);
         updateInfo();
+        nbMove4++;
         isFinished = false;
         cost = newCost;
+        if (pr->isDebug && abs(cost - calCostWtUpdate()) > MY_EPSILON) {
+            throw "bug in move4";
+        }
         return true;
     }
 
     //swap (u, uSuc) and v
     bool move5() {
-        cout << "move5\n";
+        if (pr->isDebug)cout << "move5\n";
         if (nodeU == vPred || uSuc == vPred || nodeU == vSuc || uSuc->isDepot)return false;
         int posUInSol = nodeU->posInSol;
         int posVInSol = nodeV->posInSol;
         if (nodeV->isDepot)posVInSol = nodeV->pred->posInSol + 1;
         if (nodeU->posInSol < nodeV->posInSol) {
-            valSeq[1] = uPred->seq0_i;
-            valSeq[2] = nodeV->seqi_i;
+            valSeq[1]->copy(uPred->seq0_i);
+            valSeq[2]->copy(nodeV->seqi_i);
             constructSeqData(uSuc->suc, vPred, valSeq[3]);
-            valSeq[4] = nodeU->seqi_j;
-            valSeq[5] = vSuc->seqi_n;
+            valSeq[4]->copy(nodeU->seqi_j);
+            valSeq[5]->copy(vSuc->seqi_n);
         }
         else {
-            valSeq[1] = vPred->seq0_i;
-            valSeq[2] = nodeU->seqi_j;
+            valSeq[1]->copy(vPred->seq0_i);
+            valSeq[2]->copy(nodeU->seqi_j);
             constructSeqData(vSuc, uPred, valSeq[3]);
-            valSeq[4] = nodeV->seqi_i;
-            valSeq[5] = uSuc->suc->seqi_n;
+            valSeq[4]->copy(nodeV->seqi_i);
+            valSeq[5]->copy(uSuc->suc->seqi_n);
         }
         mySeq.clear();
         for (int i = 1; i <= 5; ++i)mySeq.push_back(valSeq[i]);
@@ -366,20 +426,24 @@ public:
         swapNode(nodeU, nodeV);
         insertNode(uSuc, nodeU);
         updateInfo();
+        nbMove5++;
         isFinished = false;
         cost = newCost;
+        if (pr->isDebug && abs(cost - calCostWtUpdate()) > MY_EPSILON) {
+            throw "bug in move5";
+        }
         return true;
     }
 
     //swap (u, Suc) and (v, vSuc) (u->pos < v->pos)
     bool move6() {
-        cout << "move6\n";
+        if (pr->isDebug)cout << "move6\n";
         if (uSuc->isDepot || vSuc->isDepot || vSuc == uPred || nodeU == vSuc || uSuc == nodeV || nodeV == uSuc->suc)return false;
-        valSeq[1] = uPred->seq0_i;
-        valSeq[2] = nodeV->seqi_j;
+        valSeq[1]->copy(uPred->seq0_i);
+        valSeq[2]->copy(nodeV->seqi_j);
         constructSeqData(uSuc->suc, vPred, valSeq[3]);
-        valSeq[4] = nodeU->seqi_j;
-        valSeq[5] = vSuc->suc->seqi_n;
+        valSeq[4]->copy(nodeU->seqi_j);
+        valSeq[5]->copy(vSuc->suc->seqi_n);
         mySeq.clear();
         for (int i = 1; i <= 5; ++i)mySeq.push_back(valSeq[i]);
         double newCost = seqDep->evaluation(mySeq);
@@ -387,21 +451,25 @@ public:
         swapNode(nodeU, nodeV);
         swapNode(uSuc, vSuc);
         updateInfo();
+        nbMove6++;
         isFinished = false;
         cost = newCost;
+        if (pr->isDebug && abs(cost - calCostWtUpdate()) > MY_EPSILON) {
+            throw "bug in move6";
+        }
         return true;
     }
     
     //2-opt
     bool move7() {
-        cout << "move7\n";
+        if (pr->isDebug)cout << "move7\n";
         if (nodeU->posInSol > nodeV->posInSol)return false;
         if (uSuc == nodeV)return false;
-        valSeq[1] = nodeU->seq0_i;
+        valSeq[1]->copy(nodeU->seq0_i);
         constructSeqData(nodeV, uSuc, valSeq[2]);
-        valSeq[3] = vSuc->seqi_n;
+        valSeq[3]->copy(vSuc->seqi_n);
         mySeq.clear();
-        for (int i = 1; i <= 3; ++i)mySeq.push_back(valSeq[i]);
+        for (int i = 1; i <= 3; ++i)mySeq.push_back(valSeq[i]);        
         double newCost = seqDep->evaluation(mySeq);
         if (newCost - cost > -MY_EPSILON)return false;
         //update route structure:
@@ -418,8 +486,12 @@ public:
         uSuc->suc = vSuc;
         vSuc->pred = uSuc;
         updateInfo();     
+        nbMove7++;
         isFinished = false;
-        cost = newCost;        
+        cost = newCost;    
+        if (pr->isDebug && abs(cost - calCostWtUpdate()) > MY_EPSILON) {
+            throw "bug in move7";
+        }
         return true;
     }
 
@@ -446,9 +518,8 @@ public:
             isFinished = true;
             for (int posU = 0; posU < ordNodeLs.size(); ++posU) {                
                 nodeU = nodes[ordNodeLs[posU]];
-                for (int posV = 0; posV < nodeU->moves.size(); ++posV) {
-                    cout << posU << " " << posV << "\n";
-                    nodeV = nodes[nodeU->moves[posV]];
+                for (int posV = 0; posV < pr->correlatedNodes[ordNodeLs[posU]].size(); ++posV) {                                   
+                    nodeV = nodes[pr->correlatedNodes[ordNodeLs[posU]][posV]];
                     setLocalValU();
                     setLocalValV();
                     if (move1())continue;
@@ -461,7 +532,22 @@ public:
                     if (move7())continue;
                 }
             }
-        }
+        }        
+        cvGiantT();
+    }
+
+    //deconstructor:
+    ~Solution() {
+        /*for (int k = 0; k <= m; ++k) {
+            delete[] F[k];
+            delete[] pred[k];
+        }*/        
+        delete[] seqSet;        
+        giantT.clear();        
+        ordNodeLs.clear();
+        //for (int i = 0; i < n + 2 * pr->numVeh + 1; ++i)delete nodes[i];
+        //for (int i = 1; i <= m; ++i)delete setR[i];
+        //delete pr;
     }
     
 };

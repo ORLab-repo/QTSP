@@ -47,9 +47,14 @@ Param* read_Ins(string path, string type) {
     cout << "finish reading\n";
     //cal distance:    
     double angle;
-    for (int i = 0; i < pr->numLoc; ++i) {        
-        pr->costs.push_back(vector<vector<double>>(pr->numLoc, vector<double> (pr->numLoc)));        
-        for (int j = 0; j < pr->numLoc; ++j) {                        
+    pr->correlatedNodes = vector<vector<int> >(pr->numLoc + 1);
+    for (int i = 1; i < pr->numLoc; ++i) {
+        for (int j = 1; j <= pr->numLoc; ++j) if (j != i)pr->correlatedNodes[i].push_back(j);
+        shuffle(pr->correlatedNodes[i].begin(), pr->correlatedNodes[i].end(), pr->Rng.generator);
+    }
+    for (int i = 0; i < pr->numLoc; ++i) {                
+        pr->costs.push_back(vector<vector<double>>(pr->numLoc, vector<double> (pr->numLoc)));                       
+        for (int j = 0; j < pr->numLoc; ++j) {            
             for (int k = 0; k < pr->numLoc; ++k) {        
                 pr->costs[i][j][k] = 0.;               
                 if (i == j || j == k || i == k) {

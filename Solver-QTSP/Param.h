@@ -20,7 +20,8 @@ public:
 	vector<vector<int> > corDis;// correlation measure	
 	vector<vector<vector<double> >> costs;// distance	
 	vector<vector<int> > new_costs;// distance	
-	vector<vector<int> > times;// distance			
+	vector<vector<int> > times;// distance		
+	vector<vector<int>> correlatedNodes;
 	bool isDebug = false;
 	bool isTurnCkSol = false;
 	int lambda = 2;
@@ -56,7 +57,7 @@ public:
 	Param() {
 		cout << "clear param\n";		
 		listLoc.clear();
-		costs.clear();
-		times.clear();
+		for (int i = 0; i < costs.size(); ++i)costs[i].clear();
+		costs.clear();		
 	};
 };

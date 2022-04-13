@@ -139,9 +139,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="GA.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Ga.h" />
     <ClInclude Include="lib.h" />
     <ClInclude Include="Location.h" />
     <ClInclude Include="Node.h" />

@@ -86,7 +86,7 @@ public:
 	double evaluation(vector<SeqData*> seqs) {
 		if (seqs.front() == NULL)seqs.erase(seqs.begin());//remove null sequence
 		if (seqs.back() == NULL)seqs.pop_back();//remove null sequence
-		int costR = seqs[0]->cost;		
+		double costR = seqs[0]->cost;				
 		int u = -1, v = -1;
 		int uPred = -1, vSuc = -1;
 		for (int i = 0; i < seqs.size() - 1; ++i) {
@@ -104,12 +104,12 @@ public:
 				vSuc = v;
 			}
 			costR += pr->costs[uPred][u][v] + pr->costs[u][v][vSuc];
-			costR += seqs[i + 1]->cost;									
-		}
+			costR += seqs[i + 1]->cost;							
+		}		
 		// add the cost of tuple (preDepot Depot sucDepot):
 		int predDep = seqs.back()->beforeLaNode;
-		int sucDep = seqs[0]->firstnode;
-		int dep = seqs[0]->afterFiNode;
+		int sucDep = seqs[0]->afterFiNode;
+		int dep = seqs[0]->firstnode;
 		if (predDep == -1)predDep = seqs[seqs.size() - 2]->lastnode;
 		if (sucDep == -1)sucDep = seqs[1]->firstnode;
 		costR += pr->costs[predDep][dep][sucDep];
