@@ -11,19 +11,19 @@ GA::~GA()
 
 void GA::updateBiasedFitnesses()
 {
-    //vector<DI> ranking;
-    //for (int i = 1; i <= curNPop; i++)
-    //{
-    //    ranking.push_back({ -pop[i]->averageBrokenPairsDistanceClosest(nClose), i});
-    //}
-    //sort(ranking.begin(), ranking.end());    
-    //
-    //for (int i = 0; i < curNPop; ++i) {
-    //    double divRank = (double)(i + 1) / (curNPop);
-    //    double fitRank = (double)ranking[i].second / (curNPop);
-    //    if (curNPop <= nElite)pop[ranking[i].second]->biasedFitness = fitRank;
-    //    else pop[ranking[i].second]->biasedFitness = fitRank /*+ (1.0 - (double)nElite / curNPop) * divRank*/;
-    //}
+   /* vector<DI> ranking;
+    for (int i = 1; i <= curNPop; i++)
+    {
+        ranking.push_back({ -pop[i]->averageBrokenPairsDistanceClosest(nClose), i});
+    }
+    sort(ranking.begin(), ranking.end());    
+    
+    for (int i = 0; i < curNPop; ++i) {
+        double divRank = (double)(i + 1) / (curNPop);
+        double fitRank = (double)ranking[i].second / (curNPop);
+        if (curNPop <= nElite)pop[ranking[i].second]->biasedFitness = fitRank;
+        else pop[ranking[i].second]->biasedFitness = fitRank + (1.0 - (double)nElite / curNPop) * divRank;
+    }*/
     for (int i = 1; i <= curNPop; ++i) {
         //double fitRank = (double)(i) / (curNPop);        
         double fitRank = i;
@@ -115,7 +115,7 @@ int GA::getChild()
     /// binary tournament
     //int u = pr->Rng.getNumInRan(1, curNPop);
     //int v = pr->Rng.getNumInRan(1, curNPop);
-    //return (pop[u]->cost < pop[v]->cost) ? u : v;
+    ///*return (pop[u]->cost < pop[v]->cost) ? u : v;*/
     //return (pop[u]->biasedFitness < pop[v]->biasedFitness) ? u : v;
     ///routle wheel selection
     double percent = pr->Rng.genRealInRang01();
@@ -227,9 +227,9 @@ void GA::uni(Solution* u, Solution* v, Solution* u1, Solution* v1)
         vt++;
     }*/  
 
-    /*if (pr->Rng.genRealInRang01_muta() > 1-pM) {
+    if (pr->Rng.genRealInRang01_muta() > 1-pM) {
         for (int i = 1; i <= nMut; ++i)u1->exchange();
-    }*/
+    }
     u1->calCost();
     u1->updateObj();
     //v1->Split(); v1->updateTotal();
@@ -302,6 +302,7 @@ void GA::DelPopu()
 
 void GA::InitPopu(bool isEdu = true)
 {        
+    cout << "start init: " << curNPop << "\n";
     while (curNPop != nPop) {       
         cout << curNPop << "\n";
         valPop->genGiantT();

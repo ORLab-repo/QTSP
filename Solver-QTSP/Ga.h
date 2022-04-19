@@ -8,13 +8,16 @@ public:
 	int n;
 	int bestCost;
 	const int nClose = 5;
-	const int nElite = 20;	
-	int nPop = 40;
-	int delta = 80;
+	const int nElite = 4;	
+	/*int nPop = 40;
+	int delta = 80;*/
+	int nPop = 25;
+	int delta = 40;
 	/*const int ItSCP = 1000;
 	const int ItNI = 3000;
 	const int nMut = 10;*/	
-	const int ItNI = 5000;
+	//const int ItNI = 5000;
+	const int ItNI = 7000;
 	int nMut = 10;
 	//const int ItMut = 500;
 	double pMinMut = 0.3;

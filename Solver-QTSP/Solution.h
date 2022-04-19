@@ -45,7 +45,7 @@ public:
         depot = nodes[n + 1];        
         depot->isDepot = true;
         depot->posInSol = 0;
-        int maxSizeSeq = 7 * n + 1;
+        int maxSizeSeq = 7 * (n + 1) + 1;
         SeqData* myseqDatas = new SeqData[maxSizeSeq];
         for (int i = 0; i < maxSizeSeq; ++i)myseqDatas[i].pr = _pr;
         seqSet = myseqDatas;
@@ -69,6 +69,7 @@ public:
         predecessors.resize(n + 1);
         successors.resize(n + 1);
     }
+
     void genGiantT() {
         for (int i = 1; i <= n; ++i)giantT[i] = i;
         shuffle(giantT.begin() + 1, giantT.end(), pr->Rng.generator);
@@ -166,8 +167,8 @@ public:
         do {
             if (val->idxClient != 0)giantT[++pos] = val->idxClient;
             val = val->suc;
-        } while (val != depot);
-        if (pr->isDebug) {
+        } while (val != depot);        
+        /*if (pr->isDebug) {
             int* dd = new int[n + 1];
             for (int i = 1; i <= n; ++i)dd[i] = 0;
             for (int i = 1; i <= n; ++i)dd[giantT[i]] = 1;
@@ -178,7 +179,7 @@ public:
                 throw "Wrong here 2";
             }
             delete[] dd;
-        }
+        }*/
     }
 
     double calCostWtUpdate() {
@@ -241,6 +242,15 @@ public:
             v->suc = u;
             /*u->rou = v->rou;*/
         }
+    }
+
+    // insert node u (not belong to tour) after node v
+    void insertNodeNotInTour(Node* u, Node* v)
+    {                
+        v->suc->pred = u;
+        u->pred = v;
+        u->suc = v->suc;
+        v->suc = u;
     }
 
     void showR() {
@@ -526,14 +536,110 @@ public:
                     if (move2())continue;
                     if (move3())continue;
                     if (nodeV->isDepot) continue;
-                    if (nodeUIdx < nodeVIdx &&move4())continue;
+                    if (nodeUIdx < nodeVIdx && move4())continue;
                     if (move5())continue;
-                    if (nodeUIdx < nodeVIdx && move6())continue;    
+                    if (nodeUIdx < nodeVIdx && move6())continue;
                     if (move7())continue;
                 }
             }
         }        
         cvGiantT();
+    }
+
+    ///ELSALGO:
+    void exchange() {
+        int posU = pr->Rng.getNumInRan(1, n);
+        int posV = pr->Rng.getNumInRan(1, n);
+        while (posU == posV)
+        {
+            posV = pr->Rng.getNumInRan(1, n);
+        }
+        swap(giantT[posU], giantT[posV]);
+    }
+
+    void interchange() {
+        int posU = pr->Rng.getNumInRan(1, n);
+        int posV = pr->Rng.getNumInRan(1, n);
+        while (posU == posV)
+        {
+            posV = pr->Rng.getNumInRan(1, n);
+        }
+        if (posU < posV) {
+            for (int i = posU + 1; i <= posV; ++i) {
+                swap(giantT[i], giantT[i - 1]);
+            }
+        }
+        else {
+            for (int i = posU - 1; i >= posV; --i) {
+                swap(giantT[i], giantT[i + 1]);
+            }
+        }
+    }
+
+    void mutate(int numP) {
+        for (int i = 1; i <= numP; ++i) {
+            exchange();
+        }
+    }
+
+    //construction heuristics:
+    void cheapestIns() {
+        set<DII> valSet;
+        int* check = new int[n + 1];
+        for (int i = 1; i <= n; ++i)check[i] = 0;
+        depot->suc = depot;
+        depot->pred = depot;
+        int u = pr->Rng.getNumInRan(1, n);
+        int v = pr->Rng.getNumInRan(1, n);
+        while (u == v)
+        {
+            v = pr->Rng.getNumInRan(1, n);
+        }
+        check[u] = 1;
+        check[v] = 1;                
+        depot->suc = nodes[u];
+        depot->pred = nodes[u];
+        nodes[u]->suc = depot;
+        nodes[u]->pred = depot;
+        insertNodeNotInTour(nodes[v], nodes[u]);
+        updateInfo();        
+        int idDepot = depot->idxClient, idNodeU = nodes[u]->idxClient, idNodeV = nodes[v]->idxClient;
+        cost = pr->costs[idDepot][idNodeU][idNodeV] + pr->costs[idNodeU][idNodeV][idDepot] + pr->costs[idNodeV][idDepot][idNodeU];
+        double newMinCost;
+        int bestInsPos;
+        double valNewCost;
+        for (int i = 1; i <= n - 2; ++i) {
+            valSet.clear();
+            newMinCost = oo;
+            bestInsPos = -1;
+            for (int j = 1; j <= n; ++j)if (check[j] == 0) {
+                //check the difference of cost between before and after
+                Node* valNode = depot->pred;
+                while (true)
+                {
+                    valNode = valNode->suc;
+                    valSeq[1]->copy(valNode->seq0_i);
+                    valSeq[2]->copy(nodes[j]->seqi_i);
+                    valSeq[3]->copy(valNode->suc->seqi_n);
+                    mySeq.clear();
+                    for (int i = 1; i <= 3; ++i)mySeq.push_back(valSeq[i]);
+                    valNewCost = seqDep->evaluation(mySeq);
+                    if (newMinCost > valNewCost) {
+                        newMinCost = valNewCost;
+                        bestInsPos = valNode->idxClient;
+                        if (valNode->isDepot)bestInsPos = n + 1;
+                    }                             
+                    if (valNode == depot->pred)break;
+                }
+                valSet.insert(DII(newMinCost, II(j, bestInsPos)));
+            }
+            DII res = *valSet.begin();
+            check[res.sc.ft] = 1;
+            insertNodeNotInTour(nodes[res.sc.ft], nodes[res.sc.sc]);
+            updateInfo();
+            cost = res.first;
+        }
+        delete[] check;
     }
 
     //deconstructor:

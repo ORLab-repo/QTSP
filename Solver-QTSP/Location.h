@@ -12,7 +12,7 @@ public:
 	int enTime;//ending time
 	int demand;
 	int idxClient = -1;
-	vector<int> moves;// preprocessing for cluster.
+	//vector<int> moves;// preprocessing for cluster.
 
 	Location()
 	{
@@ -29,7 +29,7 @@ public:
 
 	~Location()
 	{
-		moves.clear();
+		//moves.clear();
 	}
 
 private:

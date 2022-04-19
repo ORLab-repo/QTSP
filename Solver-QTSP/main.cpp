@@ -5,11 +5,29 @@
 
 using namespace std;
 
+int seed[] = {
+	18319894,
+	23390422,
+	36197069,
+	45945346,
+	54500951,
+	63196367,
+	71110057,
+	89578146,
+	96527670,
+	10415237,
+};
 int main() {			
-	Param* pr = read_Ins("PointSets\\PointSet_25_3.tsp", "ag");	
+	Param* pr = read_Ins("PointSets\\PointSet_50_6.tsp", "ag");	
+	pr->Rng.config(seed[0]);
 	cout << setprecision(5) << fixed;
+	std::chrono::time_point<std::chrono::system_clock> start, end;
+	start = std::chrono::system_clock::now();
 	/*pr->isDebug = true;*/
 	//Solution bestSol(pr);
+	//bestSol.cheapestIns();	
+	////pertubation...
+	//exit(0);
 	//double bestCost = oo;		
 	//for (int i = 1; i <= 1000; ++i) {		
 	//	cout << i << "\n";
@@ -54,6 +72,10 @@ int main() {
 		exit(0);
 		//system("pause");
 	}
+	end = std::chrono::system_clock::now();
+	std::chrono::duration<double> elapsed_seconds = end - start;
+	std::time_t end_time = std::chrono::system_clock::to_time_t(end);
+	cout << "elapsed time: " << elapsed_seconds.count() << "s\n\n";
 	system("pause");
 	/*return 0;	*/
 }
