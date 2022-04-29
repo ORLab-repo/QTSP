@@ -140,10 +140,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="GA.cpp" />
+    <ClCompile Include="ILS.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Ga.h" />
+    <ClInclude Include="ILS.h" />
     <ClInclude Include="lib.h" />
     <ClInclude Include="Location.h" />
     <ClInclude Include="Node.h" />

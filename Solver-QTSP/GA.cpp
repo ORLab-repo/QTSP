@@ -225,13 +225,13 @@ void GA::uni(Solution* u, Solution* v, Solution* u1, Solution* v1)
         v1->giantT[vt] = q.front();
         q.pop_front();
         vt++;
-    }*/  
-
-    if (pr->Rng.genRealInRang01_muta() > 1-pM) {
-        for (int i = 1; i <= nMut; ++i)u1->exchange();
+    }*/      
+    u1->calCost();  
+    if (pr->Rng.genRealInRang01_muta() > 1 - pM) {
+        //for (int i = 1; i <= nMut; ++i)u1->exchange();
+        u1->pertubation();
     }
-    u1->calCost();
-    u1->updateObj();
+    u1->updateObj();   
     //v1->Split(); v1->updateTotal();
     /*if(rand()%2==0){
         u1.updateObj();v1.updateObj();
@@ -302,9 +302,9 @@ void GA::DelPopu()
 
 void GA::InitPopu(bool isEdu = true)
 {        
-    cout << "start init: " << curNPop << "\n";
+    //cout << "start init: " << curNPop << "\n";
     while (curNPop != nPop) {       
-        cout << curNPop << "\n";
+        //cout << curNPop << "\n";
         valPop->genGiantT();
         valPop->calCost();
         if(isEdu)valPop->updateObj();
@@ -352,7 +352,7 @@ void GA::findGasSol(int maxNumGas)
         /*if (numNotCha == 0)pM = pMinMut;
         else if (numNotCha % ItMut == 0)pM = min(pM + 0.1, pMaxMut);*/
         numNotCha++;
-        cout<<numga<<":"<<endl;
+        /*cout<<numga<<":"<<endl;*/
         //cout << "name ins: " << pr->nameIns << "\n";
         /*cout << numNotCha << " " << numga << "{" << endl;*/
         //out<<numga<<"{\n";
@@ -385,10 +385,10 @@ void GA::findGasSol(int maxNumGas)
         if (bestSol->cost > pop[1]->cost) {
             numNotCha = 0;
             equalSol(bestSol, pop[1]);
-            cout << "iteration: " << numga << "\n";
+            /*cout << "iteration: " << numga << "\n";
             cout << "new best: " << bestSol->cost << "\n";
             pr->fileOut << "itreation: " << numga << "\n";
-            pr->fileOut << "new best: " << bestSol->cost << "\n";            
+            pr->fileOut << "new best: " << bestSol->cost << "\n";*/            
             //pr->fileOut << (double)(clock() - be) / CLOCKS_PER_SEC << "\n";
         }
         // if bestSol don't change 100 times change 25 worst sols by 25 new sols
@@ -414,8 +414,8 @@ void GA::findGasSol(int maxNumGas)
             fl << bestSol.obj << " " << (double)(clock() - be) / CLOCKS_PER_SEC << "\n";*/
             bestCost = bestSol->cost;
             //cout << bestSol->cost;
-            cout << "Cost: " << bestSol->cost << "\n";
-            pr->fileOut << "Cost: " << bestSol->cost << "\n";            
+            /*cout << "Cost: " << bestSol->cost << "\n";*/            
+            pr->fileOut << fixed << setprecision(2) << "Cost: " << bestSol->cost << "\n";
             pr->fileOut << "giantTour: ";
             for (int i = 1; i <= n; ++i)pr->fileOut << bestSol->giantT[i] << ", ";
             pr->fileOut << "\n";

@@ -44,6 +44,7 @@ Param* read_Ins(string path, string type) {
             );            
         }        
     }
+    pr->maxRmv = min(pr->maxRmv, pr->numLoc / 3);
     cout << "finish reading\n";
     //cal distance:    
     double angle;
@@ -70,8 +71,8 @@ Param* read_Ins(string path, string type) {
                 angle = acos(angle);
                 pr->costs[i][j][k] = angle;
                 if (type == "ag")pr->costs[i][j][k] *= 1000;
-                else if (type == "ag-dis")pr->costs[i][j][k] = 40 * pr->costs[i][j][k]
-                    + 0.5 * (pr->listLoc[i].calDis(pr->listLoc[j]) + pr->listLoc[j].calDis(pr->listLoc[k]));                                                
+                else if (type == "ag-dis")pr->costs[i][j][k] = 100 * (40 * pr->costs[i][j][k]
+                    + 0.5 * (pr->listLoc[i].calDis(pr->listLoc[j]) + pr->listLoc[j].calDis(pr->listLoc[k])));
             }
         }
     }

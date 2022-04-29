@@ -22,10 +22,21 @@ public:
     int demand;    
     /*double culCost;    */    
     int idxClient = -1;
+    double rmvCost = 0.;
     /*int idxLoc = -1;*/
 
     Node() {
         isDepot = false;        
+    }
+
+    void calCurRmvCost(Param *pr) {
+        Node* rmvNode = this;
+        int idPrv = rmvNode->pred->idxClient;
+        int idPrvPrv = rmvNode->pred->pred->idxClient;
+        int idSuc = rmvNode->suc->idxClient;
+        int idSucSuc = rmvNode->suc->suc->idxClient;
+        rmvCost = -pr->costs[idPrv][idxClient][idSuc] - pr->costs[idPrvPrv][idPrv][idxClient] - pr->costs[idxClient][idSuc][idSucSuc];
+        rmvCost += pr->costs[idPrvPrv][idPrv][idSuc] + pr->costs[idPrv][idSuc][idSucSuc];        
     }
 
     bool ckNearDepot() {

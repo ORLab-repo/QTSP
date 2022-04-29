@@ -15,6 +15,9 @@ public:
     SeqData* seqSet;
     SeqData* seqDep;
     SeqData* valSeq[12];    
+    //LNS-based pertubation part:
+    vector<int> setIdRmv;
+    set<DI> setRmv;
     //GA parts:
     vector<int> predecessors; // store prev node of each client  
     vector<int> successors; // store next node of each client  
@@ -37,9 +40,11 @@ public:
             giantT.pb(0);            
         }
         for (int i = 1; i <= n + 3; ++i)nodes.pb(new Node());
+        setIdRmv.clear();
         for (int i = 1; i <= n; ++i) {
             nodes[i]->idxClient = i;
             ordNodeLs.push_back(i);
+            setIdRmv.push_back(i);
         }
         nodes[n + 1]->idxClient = 0;        
         depot = nodes[n + 1];        
@@ -73,6 +78,7 @@ public:
     void genGiantT() {
         for (int i = 1; i <= n; ++i)giantT[i] = i;
         shuffle(giantT.begin() + 1, giantT.end(), pr->Rng.generator);
+        setIdRmv.clear();
         //random_shuffle(giantT.begin() + 1, giantT.end());
     }
 
@@ -141,7 +147,7 @@ public:
     /**/
     void calCost() {        
         cost = pr->costs[giantT[n]][giantT[0]][giantT[1]] + pr->costs[giantT[n - 1]][giantT[n]][giantT[0]];
-        for (int i = 0; i <= n-2; ++i) {
+        for (int i = 0; i <= n - 2; ++i) {
             cost += pr->costs[giantT[i]][giantT[i + 1]][giantT[i + 2]];
         }
         depot->suc = nodes[giantT[1]];
@@ -587,42 +593,46 @@ public:
         set<DII> valSet;
         int* check = new int[n + 1];
         for (int i = 1; i <= n; ++i)check[i] = 0;
-        depot->suc = depot;
-        depot->pred = depot;
-        int u = pr->Rng.getNumInRan(1, n);
-        int v = pr->Rng.getNumInRan(1, n);
-        while (u == v)
-        {
-            v = pr->Rng.getNumInRan(1, n);
+        int nbIns = setIdRmv.size();        
+        if (nbIns == n) { //first construction case:
+            depot->suc = depot;
+            depot->pred = depot;
+            int u = pr->Rng.getNumInRan(1, n);
+            int v = pr->Rng.getNumInRan(1, n);
+            while (u == v)
+            {
+                v = pr->Rng.getNumInRan(1, n);
+            }
+            check[u] = 1;
+            check[v] = 1;
+            depot->suc = nodes[u];
+            depot->pred = nodes[u];
+            nodes[u]->suc = depot;
+            nodes[u]->pred = depot;
+            insertNodeNotInTour(nodes[v], nodes[u]);
+            updateInfo();
+            int idDepot = depot->idxClient, idNodeU = nodes[u]->idxClient, idNodeV = nodes[v]->idxClient;
+            cost = pr->costs[idDepot][idNodeU][idNodeV] + pr->costs[idNodeU][idNodeV][idDepot] + pr->costs[idNodeV][idDepot][idNodeU];
+            nbIns -= 2;
         }
-        check[u] = 1;
-        check[v] = 1;                
-        depot->suc = nodes[u];
-        depot->pred = nodes[u];
-        nodes[u]->suc = depot;
-        nodes[u]->pred = depot;
-        insertNodeNotInTour(nodes[v], nodes[u]);
-        updateInfo();        
-        int idDepot = depot->idxClient, idNodeU = nodes[u]->idxClient, idNodeV = nodes[v]->idxClient;
-        cost = pr->costs[idDepot][idNodeU][idNodeV] + pr->costs[idNodeU][idNodeV][idDepot] + pr->costs[idNodeV][idDepot][idNodeU];
         double newMinCost;
         int bestInsPos;
         double valNewCost;
-        for (int i = 1; i <= n - 2; ++i) {
+        for (int i = 1; i <= nbIns; ++i) {
             valSet.clear();
             newMinCost = oo;
             bestInsPos = -1;
-            for (int j = 1; j <= n; ++j)if (check[j] == 0) {
+            for (auto idIns: setIdRmv)if (check[idIns] == 0) {
                 //check the difference of cost between before and after
                 Node* valNode = depot->pred;
                 while (true)
                 {
                     valNode = valNode->suc;
                     valSeq[1]->copy(valNode->seq0_i);
-                    valSeq[2]->copy(nodes[j]->seqi_i);
+                    valSeq[2]->copy(nodes[idIns]->seqi_i);
                     valSeq[3]->copy(valNode->suc->seqi_n);
                     mySeq.clear();
-                    for (int i = 1; i <= 3; ++i)mySeq.push_back(valSeq[i]);
+                    for (int j = 1; j <= 3; ++j)mySeq.push_back(valSeq[j]);
                     valNewCost = seqDep->evaluation(mySeq);
                     if (newMinCost > valNewCost) {
                         newMinCost = valNewCost;
@@ -631,7 +641,7 @@ public:
                     }                             
                     if (valNode == depot->pred)break;
                 }
-                valSet.insert(DII(newMinCost, II(j, bestInsPos)));
+                valSet.insert(DII(newMinCost, II(idIns, bestInsPos)));
             }
             DII res = *valSet.begin();
             check[res.sc.ft] = 1;
@@ -639,9 +649,86 @@ public:
             updateInfo();
             cost = res.first;
         }
+        cvGiantT();
+        setIdRmv.clear();
         delete[] check;
     }
+    
+    void rmvNode(Node* u) {
+        u->pred->suc = u->suc;
+        u->suc->pred = u->pred;
+    }
 
+    void calNewCost() {
+        if (depot->pred->posInSol < 2) {
+            cost = 0;
+            return;
+        }
+        cost = depot->pred->seq0_i->cost + pr->costs[depot->pred->pred->idxClient][depot->pred->idxClient][depot->idxClient]
+            + pr->costs[depot->pred->idxClient][depot->idxClient][depot->suc->idxClient];
+    }
+
+    void randomRmv(int nbRmv) {
+        if (setIdRmv.size() == n)setIdRmv.clear();
+        int* rmvIdx = new int[n + 2];
+        for (int i = 1; i <= n; ++i)rmvIdx[i] = i;
+        shuffle(rmvIdx + 1, rmvIdx + n + 1, pr->Rng.generator);
+        for (int i = 1; i <= nbRmv; ++i) {
+            rmvNode(nodes[rmvIdx[i]]);
+            setIdRmv.push_back(rmvIdx[i]);
+        }
+        updateInfo();
+        calNewCost();
+        delete[] rmvIdx;
+    }
+
+    void changeRmvOnSet(Node* changedNode) {
+        if (changedNode->isDepot)return;
+        setRmv.erase(setRmv.find(DI(changedNode->rmvCost, changedNode->idxClient)));
+        changedNode->calCurRmvCost(pr);
+        setRmv.insert(DI(changedNode->rmvCost, changedNode->idxClient));
+    }
+    void worstRmv(int nbRmv) {                        
+        if (setIdRmv.size() == n)setIdRmv.clear();
+        setRmv.clear();
+        for (int i = 1; i <= n; ++i) {                        
+            nodes[i]->calCurRmvCost(pr);            
+            setRmv.insert(DI(nodes[i]->rmvCost, i));            
+        }
+        for (int i = 1; i <= nbRmv; ++i) {            
+            DI valRmv = *setRmv.begin();
+            int idRmv = valRmv.second;
+            rmvNode(nodes[idRmv]);            
+            setIdRmv.push_back(idRmv);            
+            changeRmvOnSet(nodes[idRmv]->pred);
+            changeRmvOnSet(nodes[idRmv]->pred->pred);            
+            changeRmvOnSet(nodes[idRmv]->suc);            
+            changeRmvOnSet(nodes[idRmv]->suc->suc);
+            setRmv.erase(valRmv);
+        }
+        updateInfo();
+        calNewCost();
+        setRmv.clear();
+    }
+
+    //LNS-based pertubation
+    void pertubation() {        
+        int type = pr->Rng.getNumInRan(0, 1);
+        int nbRmv = pr->Rng.getNumInRan(pr->minRmv, pr->maxRmv);        
+        switch (type)
+        {
+        case 0:
+            randomRmv(nbRmv);
+            cheapestIns();
+            break;
+        case 1:
+            worstRmv(nbRmv);
+            cheapestIns();
+            break;
+        default:
+            break;
+        }
+    }      
     //deconstructor:
     ~Solution() {
         /*for (int k = 0; k <= m; ++k) {
