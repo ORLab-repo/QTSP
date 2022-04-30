@@ -33,7 +33,7 @@ public:
 	double totalIntra = 0;
 	double rateMut = 0.5;
 	int initItSCP = 2000;
-	//int maxNeibor = 40;// max size of neigbor vertex set for granular search (can be used for dynamically sertification).
+	//int maxNeibor = 20;// max size of neigbor vertex set for granular search (can be used for dynamically sertification).
 	int maxNeibor = 120;// max size of neigbor
 	int ldTw = 5;// coff for TW vertex set for granular search (can be used for dynamically sertification).
 	int nbR = 20;

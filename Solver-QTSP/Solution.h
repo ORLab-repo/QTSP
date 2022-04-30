@@ -80,6 +80,12 @@ public:
         shuffle(giantT.begin() + 1, giantT.end(), pr->Rng.generator);
         setIdRmv.clear();
         //random_shuffle(giantT.begin() + 1, giantT.end());
+    }    
+
+    void genGiantTOri() {
+        for (int i = 1; i <= n; ++i)giantT[i] = i;        
+        setIdRmv.clear();
+        //random_shuffle(giantT.begin() + 1, giantT.end());
     }
 
     /*diversity contribution in GA*/
@@ -167,6 +173,28 @@ public:
         }
     }
 
+    bool checkSol() {
+        int* dd = new int[n + 1];
+        for (int i = 1; i <= n; ++i)dd[i] = 0;
+        Node* val = depot;
+        int pos = 0;
+        do {
+            if (val->idxClient != 0) {
+                dd[val->idxClient] = 1;
+                pos++;
+            }
+            val = val->suc;
+        } while (val != depot);
+        for (int i = 1; i <= n; ++i)if (dd[i] == 0) {
+            return false;
+        }
+        if (pos != n) {
+            return false;
+        }
+        delete[] dd;
+        return true;
+    }
+
     void cvGiantT() {
         Node* val = depot;
         int pos = 0;
@@ -190,10 +218,10 @@ public:
 
     double calCostWtUpdate() {
         cvGiantT();
-        double res = pr->costs[giantT[n]][giantT[0]][giantT[1]] + pr->costs[giantT[n - 1]][giantT[n]][giantT[0]];
+        double res = pr->costs[giantT[n]][giantT[0]][giantT[1]] + pr->costs[giantT[n - 1]][giantT[n]][giantT[0]];        
         for (int i = 0; i <= n - 2; ++i) {
             res += pr->costs[giantT[i]][giantT[i + 1]][giantT[i + 2]];
-        }       
+        }               
         return res;
     }
 
@@ -532,19 +560,20 @@ public:
         isFinished = false;
         while (!isFinished) {
             isFinished = true;
+            cout << cost << "\n";
             for (int posU = 0; posU < ordNodeLs.size(); ++posU) {                
-                nodeU = nodes[ordNodeLs[posU]];
+                nodeU = nodes[ordNodeLs[posU]];                
                 for (int posV = 0; posV < pr->correlatedNodes[ordNodeLs[posU]].size(); ++posV) {                                   
-                    nodeV = nodes[pr->correlatedNodes[ordNodeLs[posU]][posV]];
+                    nodeV = nodes[pr->correlatedNodes[ordNodeLs[posU]][posV]];                                        
                     setLocalValU();
                     setLocalValV();
-                    if (move1())continue;
-                    if (move2())continue;
-                    if (move3())continue;
+                    if (move1())continue;//relocate 1
+                    if (move2())continue;//relocate 2
+                    if (move3())continue;//relocate 2 (reversed)
                     if (nodeV->isDepot) continue;
-                    if (nodeUIdx < nodeVIdx && move4())continue;
-                    if (move5())continue;
-                    if (nodeUIdx < nodeVIdx && move6())continue;
+                    if (nodeUIdx < nodeVIdx && move4())continue;//swap 1, 1
+                    if (move5())continue;// swap 2, 1
+                    if (nodeUIdx < nodeVIdx && move6())continue;//swap 2, 2
                     if (move7())continue;
                 }
             }
@@ -586,6 +615,11 @@ public:
         for (int i = 1; i <= numP; ++i) {
             exchange();
         }
+    }
+
+    void exportGiantT() {
+        pr->fileOut << "giant tour:\n";
+        for (int i = 0; i <= n; ++i)pr->fileOut << giantT[i] << ", ";
     }
 
     //construction heuristics:

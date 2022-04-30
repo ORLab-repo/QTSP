@@ -51,7 +51,12 @@ Param* read_Ins(string path, string type) {
     pr->correlatedNodes = vector<vector<int> >(pr->numLoc + 1);
     for (int i = 1; i < pr->numLoc; ++i) {
         for (int j = 1; j <= pr->numLoc; ++j) if (j != i)pr->correlatedNodes[i].push_back(j);
+        cout << pr->correlatedNodes[i].size() << "\n";
         shuffle(pr->correlatedNodes[i].begin(), pr->correlatedNodes[i].end(), pr->Rng.generator);
+        while (pr->correlatedNodes[i].size() > pr->maxNeibor)
+        {
+            pr->correlatedNodes[i].pop_back();
+        }
     }
     for (int i = 0; i < pr->numLoc; ++i) {                
         pr->costs.push_back(vector<vector<double>>(pr->numLoc, vector<double> (pr->numLoc)));                       
