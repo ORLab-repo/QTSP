@@ -6,7 +6,7 @@
 
 using namespace std;
 
-int arr[] = { 0, 50, 29, 65, 54, 66, 47, 76, 43, 40, 31, 69, 60, 19, 11, 30, 9, 41, 53, 28, 51, 62, 72, 67, 37, 42, 32, 35, 58, 10, 2, 48, 38, 8, 14, 1, 23, 22, 20, 26, 4, 77, 25, 55, 24, 70, 33, 7, 63, 78, 56, 21, 44, 13, 57, 18, 46, 6, 73, 5, 71, 61, 16, 52, 49, 79, 45, 74, 27, 36, 75, 68, 12, 3, 15, 64, 39, 17, 34, 59, };
+int arr[] = { 0, 44, 21, 71, 34, 17, 49, 70, 65, 60, 8, 72, 74, 51, 9, 41, 53, 47, 46, 67, 37, 18, 50, 42, 16, 56, 43, 30, 76, 73, 45, 33, 26, 15, 5, 78, 40, 32, 57, 14, 69, 38, 3, 64, 2, 79, 39, 6, 28, 11, 75, 61, 68, 12, 54, 48, 52, 27, 1, 55, 25, 23, 22, 20, 7, 58, 59, 31, 13, 77, 36, 35, 62, 63, 66, 10, 4, 24, 19, 29, };
 int seed[] = {
 	18319894,
 	23390422,
@@ -37,19 +37,22 @@ int main(int argc, char* argv[]) {
 	pr->fileOut.open(pathOut);
 	cout << setprecision(5) << fixed;		
 	//pr->isDebug = true;
-	Solution bestSol(pr);
-	for (int i = 0; i <= bestSol.n; ++i)bestSol.giantT[i] = arr[i];
-	bestSol.calCost();
-	//bestSol.cheapestIns();	
-	cout << bestSol.cost << "\n";
-	bestSol.updateObj();
-	cout << bestSol.cost << "\n";
+	//Solution bestSol(pr);
+	////for (int i = 0; i <= bestSol.n; ++i)bestSol.giantT[i] = arr[i];
+	//bestSol.genGiantT();
+	//bestSol.calCost();
+	//bestSol.exportGiantT();
+	////bestSol.cheapestIns();	
+	//cout << bestSol.cost << "\n";
+	//bestSol.updateObj();
+	//cout << bestSol.cost << "\n";
+	//cout << "check sol: " << bestSol.calCostWtUpdate() << "\n";		
 	//bestSol.worstRmv(5);	
 	//bestSol.cheapestIns();
 	//cout << bestSol.cost << "\n";
 	//cout << bestSol.calCostWtUpdate() << "\n";
 	////pertubation...
-	exit(0);
+	//exit(0);
 	ILS ilsAlgo;
 	ilsAlgo.init(pr);
 	ilsAlgo.runAlgo();

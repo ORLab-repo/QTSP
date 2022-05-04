@@ -31,8 +31,12 @@ public:
     Node* nodeV;
     Node* vPred;
     Node* vSuc;
+    Node* oriNodeU;
+    Node* oriNodeV;
+    Node* curNodeU;
+    Node* curNodeV;
     int nodeUIdx, nodeVIdx, predUIdx, predVIdx, sucUIdx, sucVIdx;
-    int nbMove1 = 0, nbMove2 = 0, nbMove3 = 0, nbMove4 = 0, nbMove5 = 0, nbMove6 = 0, nbMove7 = 0;
+    int nbMove1 = 0, nbMove2 = 0, nbMove3 = 0, nbMove4 = 0, nbMove5 = 0, nbMove6 = 0, nbMove7 = 0, nbMove8 = 0;
     Solution(Param* _pr) {
         pr = _pr;
         n = pr->numLoc - 1;//not cointain depot
@@ -46,6 +50,7 @@ public:
             ordNodeLs.push_back(i);
             setIdRmv.push_back(i);
         }
+        ordNodeLs.push_back(n + 1);
         nodes[n + 1]->idxClient = 0;        
         depot = nodes[n + 1];        
         depot->isDepot = true;
@@ -316,31 +321,29 @@ public:
         else {
             resSeq->cost = endNode->seq0_i->cost - startNode->suc->seq0_i->cost;                        
         }
-    }
-    //relocate u after v
+    }    
+    //relocate v after u
     bool move1() {
         if(pr->isDebug)cout << "move1\n";
-        //nodeV in this case can be depot (arrival depot)
-        if (nodeU == vSuc)return false;        
-        int posUInSol = nodeU->posInSol;
-        int posVInSol = nodeV->posInSol;        
-        if (nodeU->posInSol < nodeV->posInSol) {
-            valSeq[1]->copy(uPred->seq0_i);
-            constructSeqData(uSuc, nodeV, valSeq[2]);            
-            valSeq[3]->copy(nodeU->seqi_i);
-            valSeq[4]->copy(vSuc->seqi_n);
+        //nodeU in this case can be depot (arrival depot)
+        if (nodeV == uSuc)return false;                
+        if (nodeV->posInSol < nodeU->posInSol) {
+            valSeq[1]->copy(vPred->seq0_i);
+            constructSeqData(vSuc, nodeU, valSeq[2]);            
+            valSeq[3]->copy(nodeV->seqi_i);
+            valSeq[4]->copy(uSuc->seqi_n);
         }
         else {
-            valSeq[1]->copy(nodeV->seq0_i);
-            valSeq[2]->copy(nodeU->seqi_i);
-            constructSeqData(vSuc, uPred, valSeq[3]);
-            valSeq[4]->copy(uSuc->seqi_n);
+            valSeq[1]->copy(nodeU->seq0_i);
+            valSeq[2]->copy(nodeV->seqi_i);
+            constructSeqData(uSuc, vPred, valSeq[3]);
+            valSeq[4]->copy(vSuc->seqi_n);
         }
         mySeq.clear();
         for (int i = 1; i <= 4; ++i)mySeq.push_back(valSeq[i]);
         double newCost = seqDep->evaluation(mySeq);
         if (newCost - cost > -MY_EPSILON)return false;        
-        insertNode(nodeU, nodeV);           
+        insertNode(nodeV, nodeU);           
         updateInfo();                
         nbMove1++;
         isFinished = false;
@@ -350,31 +353,30 @@ public:
         }
         return true;
     }
-
-    //relocate u Suc after V
+    
+    //relocate v vSuc after u
     bool move2() {
         if (pr->isDebug)cout << "move2\n";
-        if (nodeU == vSuc || nodeV == uSuc || uSuc->isDepot)return false;
-        int posUInSol = nodeU->posInSol;
-        int posVInSol = nodeV->posInSol;        
-        if (nodeU->posInSol < nodeV->posInSol) {
-            valSeq[1]->copy(uPred->seq0_i);
-            constructSeqData(uSuc->suc, nodeV, valSeq[2]);
-            valSeq[3]->copy(nodeU->seqi_j);
-            valSeq[4]->copy(vSuc->seqi_n);
+        //nodeU in this case can be depot (arrival depot)
+        if (nodeV == uSuc || nodeU == vSuc || vSuc->isDepot)return false;        
+        if (nodeV->posInSol < nodeU->posInSol) {
+            valSeq[1]->copy(vPred->seq0_i);
+            constructSeqData(vSuc->suc, nodeU, valSeq[2]);
+            valSeq[3]->copy(nodeV->seqi_j);
+            valSeq[4]->copy(uSuc->seqi_n);
         }
         else {
-            valSeq[1]->copy(nodeV->seq0_i);
-            valSeq[2]->copy(nodeU->seqi_j);
-            constructSeqData(vSuc, uPred, valSeq[3]);
-            valSeq[4]->copy(uSuc->suc->seqi_n);
+            valSeq[1]->copy(nodeU->seq0_i);
+            valSeq[2]->copy(nodeV->seqi_j);
+            constructSeqData(uSuc, vPred, valSeq[3]);
+            valSeq[4]->copy(vSuc->suc->seqi_n);
         }
         mySeq.clear();
         for (int i = 1; i <= 4; ++i)mySeq.push_back(valSeq[i]);
         double newCost = seqDep->evaluation(mySeq);
         if (newCost - cost > -MY_EPSILON)return false;
-        insertNode(nodeU, nodeV);
-        insertNode(uSuc, nodeU);
+        insertNode(nodeV, nodeU);
+        insertNode(vSuc, nodeV);
         updateInfo();
         nbMove2++;
         isFinished = false;
@@ -383,31 +385,30 @@ public:
             throw "bug in move2";
         }
         return true;
-    }
-    //relocate sucU u after V
+    }    
+    //relocate vSuc v after U
     bool move3() {
         if (pr->isDebug)cout << "move3\n";
-        if (nodeU == vSuc || nodeV == uSuc || uSuc->isDepot)return false;
-        int posUInSol = nodeU->posInSol;
-        int posVInSol = nodeV->posInSol;        
-        if (nodeU->posInSol < nodeV->posInSol) {
-            valSeq[1]->copy(uPred->seq0_i);
-            constructSeqData(uSuc->suc, nodeV, valSeq[2]);
-            valSeq[3]->copy(nodeU->seqj_i);
-            valSeq[4]->copy(vSuc->seqi_n);
+        //nodeU in this case can be depot (arrival depot)
+        if (nodeV == uSuc || nodeU == vSuc || vSuc->isDepot)return false;        
+        if (nodeV->posInSol < nodeU->posInSol) {
+            valSeq[1]->copy(vPred->seq0_i);
+            constructSeqData(vSuc->suc, nodeU, valSeq[2]);
+            valSeq[3]->copy(nodeV->seqj_i);
+            valSeq[4]->copy(uSuc->seqi_n);
         }
         else {
-            valSeq[1]->copy(nodeV->seq0_i);
-            valSeq[2]->copy(nodeU->seqj_i);
-            constructSeqData(vSuc, uPred, valSeq[3]);
-            valSeq[4]->copy(uSuc->suc->seqi_n);
+            valSeq[1]->copy(nodeU->seq0_i);
+            valSeq[2]->copy(nodeV->seqj_i);
+            constructSeqData(uSuc, vPred, valSeq[3]);
+            valSeq[4]->copy(vSuc->suc->seqi_n);
         }
         mySeq.clear();
         for (int i = 1; i <= 4; ++i)mySeq.push_back(valSeq[i]);
         double newCost = seqDep->evaluation(mySeq);
         if (newCost - cost > -MY_EPSILON)return false;
-        insertNode(uSuc, nodeV);
-        insertNode(nodeU, uSuc);
+        insertNode(vSuc, nodeU);
+        insertNode(nodeV, vSuc);
         updateInfo();
         nbMove3++;
         isFinished = false;
@@ -419,7 +420,7 @@ public:
     }
     //Swaps moves:
     //swap u and v (u->pos < v->pos)
-    bool move4() {
+    bool move4() {                
         if (pr->isDebug)cout << "move4\n";
         if (nodeU == vPred || nodeU == vSuc)return false;        
         valSeq[1]->copy(uPred->seq0_i);
@@ -442,13 +443,10 @@ public:
         return true;
     }
 
-    //swap (u, uSuc) and v
+    //swap (u, uSuc) and v    
     bool move5() {
         if (pr->isDebug)cout << "move5\n";
-        if (nodeU == vPred || uSuc == vPred || nodeU == vSuc || uSuc->isDepot)return false;
-        int posUInSol = nodeU->posInSol;
-        int posVInSol = nodeV->posInSol;
-        if (nodeV->isDepot)posVInSol = nodeV->pred->posInSol + 1;
+        if (nodeU == vPred || uSuc == vPred || nodeU == vSuc || uSuc->isDepot)return false;        
         if (nodeU->posInSol < nodeV->posInSol) {
             valSeq[1]->copy(uPred->seq0_i);
             valSeq[2]->copy(nodeV->seqi_i);
@@ -475,6 +473,40 @@ public:
         cost = newCost;
         if (pr->isDebug && abs(cost - calCostWtUpdate()) > MY_EPSILON) {
             throw "bug in move5";
+        }
+        return true;
+    }
+    
+    //swap u and (v, vSuc)
+    bool move8() {
+        if (pr->isDebug)cout << "move8\n";
+        if (nodeV == uPred || vSuc == uPred || nodeV == uSuc || vSuc->isDepot)return false;        
+        if (nodeU->posInSol < nodeV->posInSol) {
+            valSeq[1]->copy(uPred->seq0_i);
+            valSeq[2]->copy(nodeV->seqi_j);
+            constructSeqData(uSuc, vPred, valSeq[3]);
+            valSeq[4]->copy(nodeU->seqi_i);
+            valSeq[5]->copy(vSuc->suc->seqi_n);
+        }
+        else {
+            valSeq[1]->copy(vPred->seq0_i);
+            valSeq[2]->copy(nodeU->seqi_i);
+            constructSeqData(vSuc->suc, uPred, valSeq[3]);
+            valSeq[4]->copy(nodeV->seqi_j);
+            valSeq[5]->copy(uSuc->seqi_n);
+        }
+        mySeq.clear();
+        for (int i = 1; i <= 5; ++i)mySeq.push_back(valSeq[i]);
+        double newCost = seqDep->evaluation(mySeq);
+        if (newCost - cost > -MY_EPSILON)return false;
+        swapNode(nodeU, nodeV);
+        insertNode(vSuc, nodeV);
+        updateInfo();
+        nbMove8++;
+        isFinished = false;
+        cost = newCost;
+        if (pr->isDebug && abs(cost - calCostWtUpdate()) > MY_EPSILON) {
+            throw "bug in move8";
         }
         return true;
     }
@@ -507,7 +539,7 @@ public:
     //2-opt
     bool move7() {
         if (pr->isDebug)cout << "move7\n";
-        if (nodeU->posInSol > nodeV->posInSol)return false;
+        if (nodeU->posInSol > nodeV->posInSol)return false;        
         if (uSuc == nodeV)return false;
         valSeq[1]->copy(nodeU->seq0_i);
         constructSeqData(nodeV, uSuc, valSeq[2]);
@@ -544,7 +576,7 @@ public:
         uPred = nodeU->pred;
         nodeUIdx = nodeU->idxClient;
         predUIdx = uPred->idxClient;
-        sucUIdx = uSuc->idxClient;
+        sucUIdx = uSuc->idxClient;        
     }
 
     void setLocalValV() {
@@ -552,28 +584,48 @@ public:
         vPred = nodeV->pred;
         nodeVIdx = nodeV->idxClient;        
         predVIdx = vPred->idxClient;
-        sucVIdx = vSuc->idxClient;        
+        sucVIdx = vSuc->idxClient;                
     }
-
+          
     void updateObj() {
         shuffle(ordNodeLs.begin(), ordNodeLs.end(), pr->Rng.generator);
         isFinished = false;
         while (!isFinished) {
             isFinished = true;
-            cout << cost << "\n";
+            //cout << "updated cost: " << cost << "\n";
             for (int posU = 0; posU < ordNodeLs.size(); ++posU) {                
                 nodeU = nodes[ordNodeLs[posU]];                
-                for (int posV = 0; posV < pr->correlatedNodes[ordNodeLs[posU]].size(); ++posV) {                                   
-                    nodeV = nodes[pr->correlatedNodes[ordNodeLs[posU]][posV]];                                        
+                oriNodeU = nodeU;
+                int idNodeU = ordNodeLs[posU];
+                if (idNodeU == n + 1)idNodeU = 0;
+                int idPrvU = nodeU->pred->idxClient;
+                if (pr->Rng.getIntRand() % pr->maxNeibor == 0) {
+                    shuffle(pr->correlatedNodes[idPrvU][idNodeU].begin(), pr->correlatedNodes[idPrvU][idNodeU].end(), pr->Rng.generator);
+                }
+                for (int posV = 0; posV < pr->correlatedNodes[idPrvU][idNodeU].size(); ++posV) {                                   
+                    nodeV = nodes[pr->correlatedNodes[idPrvU][idNodeU][posV]];                    
+                    oriNodeV = nodeV;
+                    nodeU = oriNodeU;
                     setLocalValU();
                     setLocalValV();
                     if (move1())continue;//relocate 1
                     if (move2())continue;//relocate 2
-                    if (move3())continue;//relocate 2 (reversed)
-                    if (nodeV->isDepot) continue;
-                    if (nodeUIdx < nodeVIdx && move4())continue;//swap 1, 1
-                    if (move5())continue;// swap 2, 1
-                    if (nodeUIdx < nodeVIdx && move6())continue;//swap 2, 2
+                    //if (move3())continue;//relocate 2 (reversed)
+                    //if (nodeU->suc->isDepot) continue;                                                            
+                    if (nodeU->suc->isDepot)continue;
+                    if (nodeU->suc == nodeV)continue;
+                    nodeU = nodeU->suc;                    
+                    setLocalValU();                  
+                    if (move5())continue;// swap 2, 1                    
+                    if (move8())continue;// swap 1, 2                    
+                    if (nodeU->posInSol > nodeV->posInSol) {
+                        nodeV = nodeU;
+                        nodeU = oriNodeV;
+                        setLocalValU();
+                        setLocalValV();
+                    }
+                    if (move4())continue;//swap 1, 1                    
+                    if (move6())continue;//swap 2, 2
                     if (move7())continue;
                 }
             }

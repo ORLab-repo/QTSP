@@ -382,13 +382,13 @@ void GA::findGasSol(int maxNumGas)
         /*insertNew(child2);
         if (nPop1 == nPop + delta)
             DelPopu();*/
-        if (bestSol->cost > pop[1]->cost) {
+        if (bestSol->cost - pop[1]->cost > MY_EPSILON) {
             numNotCha = 0;
             equalSol(bestSol, pop[1]);
-            /*cout << "iteration: " << numga << "\n";
+            cout << "iteration: " << numga << "\n";
             cout << "new best: " << bestSol->cost << "\n";
-            pr->fileOut << "itreation: " << numga << "\n";
-            pr->fileOut << "new best: " << bestSol->cost << "\n";*/            
+           /* pr->fileOut << "itreation: " << numga << "\n";
+            pr->fileOut << "new best: " << bestSol->cost << "\n";   */         
             //pr->fileOut << (double)(clock() - be) / CLOCKS_PER_SEC << "\n";
         }
         // if bestSol don't change 100 times change 25 worst sols by 25 new sols

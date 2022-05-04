@@ -18,9 +18,7 @@ void ILS::equalSol(Solution* u, Solution* v)
 
 void ILS::runAlgo()
 {
-	//curSol->cheapestIns();
-	curSol->genGiantT();	
-	curSol->genGiantT();
+	curSol->cheapestIns();	
 	curSol->exportGiantT();
 	curSol->calCost();
 	cout << "ori cost: " << curSol->cost << "\n";
@@ -28,7 +26,7 @@ void ILS::runAlgo()
 	cout << "improved cost: " << curSol->cost << "\n";		
 	cout << "check sol: " << boolalpha << curSol->checkSol() << "\n";	
 	cout << curSol->calCostWtUpdate() << "\n";	
-	pr->fileOut.close();
+	pr->fileOut.close();	
 	equalSol(oriSol, curSol);
 	equalSol(bestSol, curSol);
 	cout << "initial cost: " << bestSol->cost << "\n";
@@ -39,12 +37,15 @@ void ILS::runAlgo()
 		curSol->calCost();
 		curSol->pertubation();
 		curSol->updateObj();
+		if (i % 100 == 0) {
+			cout << i << " " << "new best: " << bestSol->cost << "\n";
+		}
 		if (bestSol->cost - curSol->cost > MY_EPSILON) {						
 			equalSol(bestSol, curSol);
-			cout << "new best: " << bestSol->cost << "\n";
+			//cout <<i<<" "<< "new best: " << bestSol->cost << "\n";
 			equalSol(oriSol, curSol);
 		}
-		else if ((curSol->cost - oriSol->cost)  -  oriSol->cost*acceptRate > EP) {
+		else if ((curSol->cost - oriSol->cost)  -  oriSol->cost*acceptRate > MY_EPSILON) {
 			equalSol(oriSol, curSol);
 		}
 		else {
