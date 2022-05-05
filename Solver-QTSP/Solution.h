@@ -419,7 +419,7 @@ public:
         return true;
     }
     //Swaps moves:
-    //swap u and v (u->pos < v->pos)
+    //swap u and v (u->pos < v->pos)    
     bool move4() {                
         if (pr->isDebug)cout << "move4\n";
         if (nodeU == vPred || nodeU == vSuc)return false;        
@@ -537,21 +537,23 @@ public:
     }
     
     //2-opt
+    //reverse u...v to v...u
+    //...oriUuv... and ...oriUuxv... are trivial cases
     bool move7() {
         if (pr->isDebug)cout << "move7\n";
         if (nodeU->posInSol > nodeV->posInSol)return false;        
-        if (uSuc == nodeV)return false;
-        valSeq[1]->copy(nodeU->seq0_i);
-        constructSeqData(nodeV, uSuc, valSeq[2]);
+        if (uSuc == nodeV || uSuc == vPred)return false;
+        valSeq[1]->copy(uPred->seq0_i);
+        constructSeqData(nodeV, nodeU, valSeq[2]);
         valSeq[3]->copy(vSuc->seqi_n);
         mySeq.clear();
         for (int i = 1; i <= 3; ++i)mySeq.push_back(valSeq[i]);        
         double newCost = seqDep->evaluation(mySeq);
         if (newCost - cost > -MY_EPSILON)return false;
         //update route structure:
-        Node* startNode = nodeU;
+        Node* startNode = uPred;
         Node* endNode = nodeV;
-        while (startNode != uSuc)
+        while (startNode != nodeU)
         {
             Node* tempNode = endNode->pred;
             startNode->suc = endNode;
@@ -559,8 +561,8 @@ public:
             startNode = endNode;
             endNode = tempNode;
         }
-        uSuc->suc = vSuc;
-        vSuc->pred = uSuc;
+        nodeU->suc = vSuc;
+        vSuc->pred = nodeU;
         updateInfo();     
         nbMove7++;
         isFinished = false;
@@ -570,6 +572,41 @@ public:
         }
         return true;
     }
+
+    ////2-opt
+    //bool move7() {
+    //    if (pr->isDebug)cout << "move7\n";
+    //    if (nodeU->posInSol > nodeV->posInSol)return false;
+    //    if (uSuc == nodeV)return false;
+    //    valSeq[1]->copy(nodeU->seq0_i);
+    //    constructSeqData(nodeV, uSuc, valSeq[2]);
+    //    valSeq[3]->copy(vSuc->seqi_n);
+    //    mySeq.clear();
+    //    for (int i = 1; i <= 3; ++i)mySeq.push_back(valSeq[i]);
+    //    double newCost = seqDep->evaluation(mySeq);
+    //    if (newCost - cost > -MY_EPSILON)return false;
+    //    //update route structure:
+    //    Node* startNode = nodeU;
+    //    Node* endNode = nodeV;
+    //    while (startNode != uSuc)
+    //    {
+    //        Node* tempNode = endNode->pred;
+    //        startNode->suc = endNode;
+    //        endNode->pred = startNode;
+    //        startNode = endNode;
+    //        endNode = tempNode;
+    //    }
+    //    uSuc->suc = vSuc;
+    //    vSuc->pred = uSuc;
+    //    updateInfo();
+    //    nbMove7++;
+    //    isFinished = false;
+    //    cost = newCost;
+    //    if (pr->isDebug && abs(cost - calCostWtUpdate()) > MY_EPSILON) {
+    //        throw "bug in move7";
+    //    }
+    //    return true;
+    //}
 
     void setLocalValU() {        
         uSuc = nodeU->suc;
@@ -588,6 +625,7 @@ public:
     }
           
     void updateObj() {
+        int oriCost = cost;
         shuffle(ordNodeLs.begin(), ordNodeLs.end(), pr->Rng.generator);
         isFinished = false;
         while (!isFinished) {
@@ -598,11 +636,11 @@ public:
                 oriNodeU = nodeU;
                 int idNodeU = ordNodeLs[posU];
                 if (idNodeU == n + 1)idNodeU = 0;
-                int idPrvU = nodeU->pred->idxClient;
+                int idPrvU = nodeU->pred->idxClient;                
                 if (pr->Rng.getIntRand() % pr->maxNeibor == 0) {
                     shuffle(pr->correlatedNodes[idPrvU][idNodeU].begin(), pr->correlatedNodes[idPrvU][idNodeU].end(), pr->Rng.generator);
                 }
-                for (int posV = 0; posV < pr->correlatedNodes[idPrvU][idNodeU].size(); ++posV) {                                   
+                for (int posV = 0; posV < pr->correlatedNodes[idPrvU][idNodeU].size(); ++posV) {                                                    
                     nodeV = nodes[pr->correlatedNodes[idPrvU][idNodeU][posV]];                    
                     oriNodeV = nodeV;
                     nodeU = oriNodeU;
@@ -625,8 +663,8 @@ public:
                         setLocalValV();
                     }
                     if (move4())continue;//swap 1, 1                    
-                    if (move6())continue;//swap 2, 2
-                    if (move7())continue;
+                    if (move6())continue;//swap 2, 2 
+                    if (move7())continue;//2opt
                 }
             }
         }        
@@ -774,16 +812,29 @@ public:
         changedNode->calCurRmvCost(pr);
         setRmv.insert(DI(changedNode->rmvCost, changedNode->idxClient));
     }
-    void worstRmv(int nbRmv) {                        
+    void worstRmv(int nbRmv, int worstDeg) {                        
         if (setIdRmv.size() == n)setIdRmv.clear();
         setRmv.clear();
         for (int i = 1; i <= n; ++i) {                        
             nodes[i]->calCurRmvCost(pr);            
             setRmv.insert(DI(nodes[i]->rmvCost, i));            
         }
+        double randRate;
+        int idInSet, idRmv, countId;      
+        DI valRmv;
         for (int i = 1; i <= nbRmv; ++i) {            
-            DI valRmv = *setRmv.begin();
-            int idRmv = valRmv.second;
+            randRate = pow(pr->Rng.genRealInRang01(), worstDeg) * setRmv.size();
+            idInSet = min((int)floor(randRate), (int)setRmv.size() - 1);
+            countId = 0;
+            //DI valRmv = *setRmv.begin();            
+            for (auto val : setRmv) {
+                if (countId == idInSet) {
+                    valRmv = val;
+                    break;
+                }
+                countId++;
+            }
+            idRmv = valRmv.second;
             rmvNode(nodes[idRmv]);            
             setIdRmv.push_back(idRmv);            
             changeRmvOnSet(nodes[idRmv]->pred);
@@ -808,7 +859,7 @@ public:
             cheapestIns();
             break;
         case 1:
-            worstRmv(nbRmv);
+            worstRmv(nbRmv, pr->worstDeg);
             cheapestIns();
             break;
         default:

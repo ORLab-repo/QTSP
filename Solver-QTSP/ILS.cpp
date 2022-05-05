@@ -18,14 +18,16 @@ void ILS::equalSol(Solution* u, Solution* v)
 
 void ILS::runAlgo()
 {
-	curSol->cheapestIns();	
+	/*curSol->genGiantT();		
 	curSol->exportGiantT();
-	curSol->calCost();
+	curSol->calCost();*/
+	curSol->cheapestIns();
 	cout << "ori cost: " << curSol->cost << "\n";
 	curSol->updateObj();
 	cout << "improved cost: " << curSol->cost << "\n";		
 	cout << "check sol: " << boolalpha << curSol->checkSol() << "\n";	
 	cout << curSol->calCostWtUpdate() << "\n";	
+	//curSol->exportGiantT();
 	pr->fileOut.close();	
 	equalSol(oriSol, curSol);
 	equalSol(bestSol, curSol);

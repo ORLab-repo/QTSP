@@ -31,10 +31,11 @@ public:
 	int delta = 40;
 	int nMut = 10;
 	double totalIntra = 0;
-	double rateMut = 0.5;
-	int initItSCP = 2000;
+	double rateMut = 0.8;
+	int initItSCP = 2000;	
 	//int maxNeibor = 20;// max size of neigbor vertex set for granular search (can be used for dynamically sertification).
 	int maxNeibor = 20;// max size of neigbor
+	int worstDeg = 3;
 	int ldTw = 5;// coff for TW vertex set for granular search (can be used for dynamically sertification).
 	int nbR = 20;
 	int nbIls = 100;

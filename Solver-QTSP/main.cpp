@@ -6,7 +6,7 @@
 
 using namespace std;
 
-int arr[] = { 0, 44, 21, 71, 34, 17, 49, 70, 65, 60, 8, 72, 74, 51, 9, 41, 53, 47, 46, 67, 37, 18, 50, 42, 16, 56, 43, 30, 76, 73, 45, 33, 26, 15, 5, 78, 40, 32, 57, 14, 69, 38, 3, 64, 2, 79, 39, 6, 28, 11, 75, 61, 68, 12, 54, 48, 52, 27, 1, 55, 25, 23, 22, 20, 7, 58, 59, 31, 13, 77, 36, 35, 62, 63, 66, 10, 4, 24, 19, 29, };
+int arr[] = { 0, 31, 35, 78, 11, 9, 22, 34, 17, 45, 39, 52, 10, 12, 59, 68, 1, 16, 55, 44, 77, 13, 57, 50, 18, 37, 67, 29, 46, 38, 4, 58, 63, 47, 76, 71, 56, 21, 25, 75, 36, 27, 79, 33, 48, 15, 65, 60, 8, 72, 74, 62, 51, 28, 41, 53, 20, 73, 6, 7, 54, 19, 69, 14, 42, 32, 61, 40, 43, 30, 23, 5, 66, 49, 2, 26, 64, 3, 70, 24, };
 int seed[] = {
 	18319894,
 	23390422,
@@ -19,7 +19,7 @@ int seed[] = {
 	96527670,
 	10415237,
 };
-string nameIns = "PointSet_80_3.tsp";
+string nameIns = "PointSet_50_3.tsp";
 string type = "ag";
 int main(int argc, char* argv[]) {
 	for (int i = 1; i < argc; ++i) {		
@@ -37,26 +37,34 @@ int main(int argc, char* argv[]) {
 	pr->fileOut.open(pathOut);
 	cout << setprecision(5) << fixed;		
 	//pr->isDebug = true;
-	//Solution bestSol(pr);
-	////for (int i = 0; i <= bestSol.n; ++i)bestSol.giantT[i] = arr[i];
+	/*Solution bestSol(pr);
+	for (int i = 0; i <= bestSol.n; ++i)bestSol.giantT[i] = arr[i];*/
 	//bestSol.genGiantT();
 	//bestSol.calCost();
-	//bestSol.exportGiantT();
-	////bestSol.cheapestIns();	
+	////bestSol.exportGiantT();
+	//////bestSol.cheapestIns();	
 	//cout << bestSol.cost << "\n";
 	//bestSol.updateObj();
 	//cout << bestSol.cost << "\n";
 	//cout << "check sol: " << bestSol.calCostWtUpdate() << "\n";		
-	//bestSol.worstRmv(5);	
-	//bestSol.cheapestIns();
-	//cout << bestSol.cost << "\n";
-	//cout << bestSol.calCostWtUpdate() << "\n";
-	////pertubation...
+	//bestSol.exportGiantT();
+	////bestSol.worstRmv(5);	
+	////bestSol.cheapestIns();
+	////cout << bestSol.cost << "\n";
+	////cout << bestSol.calCostWtUpdate() << "\n";
+	//////pertubation...
+	//cout << "nbMove1: " << bestSol.nbMove1 << "\n";
+	//cout << "nbMove2: " << bestSol.nbMove2 << "\n";
+	//cout << "nbMove3: " << bestSol.nbMove3 << "\n";
+	//cout << "nbMove4: " << bestSol.nbMove4 << "\n";
+	//cout << "nbMove5: " << bestSol.nbMove5 << "\n";
+	//cout << "nbMove6: " << bestSol.nbMove6 << "\n";
+	//cout << "nbMove7: " << bestSol.nbMove7 << "\n";
 	//exit(0);
-	ILS ilsAlgo;
+	/*ILS ilsAlgo;
 	ilsAlgo.init(pr);
 	ilsAlgo.runAlgo();
-	exit(0);
+	exit(0);*/
 	//double bestCost = oo;		
 	//for (int i = 1; i <= 1000; ++i) {		
 	//	cout << i << "\n";

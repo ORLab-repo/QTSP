@@ -8,7 +8,7 @@ public:
 	int n;	
 	Param* pr;
 	double acceptRate = 0.1;
-	double coolingRate = 0.9995;
+	double coolingRate = 0.9995;	
 	int step = 10000;
 	int totalIt = 100000;
 	Solution* bestSol;
