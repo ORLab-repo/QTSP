@@ -6,7 +6,7 @@
 
 using namespace std;
 
-int arr[] = { 0, 31, 35, 78, 11, 9, 22, 34, 17, 45, 39, 52, 10, 12, 59, 68, 1, 16, 55, 44, 77, 13, 57, 50, 18, 37, 67, 29, 46, 38, 4, 58, 63, 47, 76, 71, 56, 21, 25, 75, 36, 27, 79, 33, 48, 15, 65, 60, 8, 72, 74, 62, 51, 28, 41, 53, 20, 73, 6, 7, 54, 19, 69, 14, 42, 32, 61, 40, 43, 30, 23, 5, 66, 49, 2, 26, 64, 3, 70, 24, };
+int arr[] = { 0, 15, 49, 137, 6, 63, 71, 141, 61, 27, 84, 1, 9, 55, 80, 16, 32, 40, 142, 69, 105, 112, 140, 36, 62, 118, 138, 68, 3, 23, 94, 119, 132, 117, 37, 44, 116, 57, 99, 120, 109, 13, 147, 115, 89, 73, 111, 24, 101, 22, 45, 102, 54, 107, 74, 7, 64, 91, 149, 75, 90, 17, 86, 59, 65, 82, 29, 81, 128, 108, 10, 20, 26, 104, 110, 114, 70, 95, 144, 146, 52, 18, 58, 135, 97, 50, 51, 47, 25, 85, 2, 100, 134, 5, 35, 14, 125, 123, 72, 83, 103, 126, 124, 131, 43, 60, 96, 133, 145, 136, 11, 106, 12, 78, 130, 139, 31, 67, 93, 53, 77, 79, 4, 30, 56, 28, 38, 121, 48, 39, 92, 46, 98, 41, 129, 88, 21, 143, 113, 8, 127, 19, 33, 122, 148, 76, 66, 42, 34, 87, };
 int seed[] = {
 	18319894,
 	23390422,
@@ -19,9 +19,9 @@ int seed[] = {
 	96527670,
 	10415237,
 };
-string nameIns = "PointSet_50_3.tsp";
+string nameIns = "PointSet_150_3.tsp";
 string type = "ag";
-int main(int argc, char* argv[]) {
+int main(int argc, char* argv[]) {	
 	for (int i = 1; i < argc; ++i) {		
 		if (string(argv[i]) == "-nameIns") {
 			nameIns = argv[i + 1];
@@ -35,18 +35,19 @@ int main(int argc, char* argv[]) {
 	string pathOut = "solution\\" + nameIns + "_" + type + ".sol";
 	Param* pr = read_Ins(pathIn, type);		
 	pr->fileOut.open(pathOut);
+	pr->Rng.config(seed[0]);
 	cout << setprecision(5) << fixed;		
 	//pr->isDebug = true;
-	/*Solution bestSol(pr);
-	for (int i = 0; i <= bestSol.n; ++i)bestSol.giantT[i] = arr[i];*/
+	Solution bestSol(pr);
+	for (int i = 0; i <= bestSol.n; ++i)bestSol.giantT[i] = arr[i];
 	//bestSol.genGiantT();
-	//bestSol.calCost();
+	bestSol.calCost();
 	////bestSol.exportGiantT();
 	//////bestSol.cheapestIns();	
-	//cout << bestSol.cost << "\n";
-	//bestSol.updateObj();
-	//cout << bestSol.cost << "\n";
-	//cout << "check sol: " << bestSol.calCostWtUpdate() << "\n";		
+	cout << bestSol.cost << "\n";
+	bestSol.updateObj();
+	cout << bestSol.cost << "\n";
+	cout << "check sol: " << bestSol.calCostWtUpdate() << "\n";		
 	//bestSol.exportGiantT();
 	////bestSol.worstRmv(5);	
 	////bestSol.cheapestIns();
@@ -60,11 +61,11 @@ int main(int argc, char* argv[]) {
 	//cout << "nbMove5: " << bestSol.nbMove5 << "\n";
 	//cout << "nbMove6: " << bestSol.nbMove6 << "\n";
 	//cout << "nbMove7: " << bestSol.nbMove7 << "\n";
-	//exit(0);
-	/*ILS ilsAlgo;
+	exit(0);
+	ILS ilsAlgo;
 	ilsAlgo.init(pr);
 	ilsAlgo.runAlgo();
-	exit(0);*/
+	exit(0);
 	//double bestCost = oo;		
 	//for (int i = 1; i <= 1000; ++i) {		
 	//	cout << i << "\n";

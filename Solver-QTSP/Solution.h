@@ -512,7 +512,7 @@ public:
     }
 
     //swap (u, Suc) and (v, vSuc) (u->pos < v->pos)
-    bool move6() {
+    bool move6() {        
         if (pr->isDebug)cout << "move6\n";
         if (uSuc->isDepot || vSuc->isDepot || vSuc == uPred || nodeU == vSuc || uSuc == nodeV || nodeV == uSuc->suc)return false;
         valSeq[1]->copy(uPred->seq0_i);
@@ -540,6 +540,9 @@ public:
     //reverse u...v to v...u
     //...oriUuv... and ...oriUuxv... are trivial cases
     bool move7() {
+        if (uPred->idxClient == 14 && nodeV->idxClient == 28) {
+            cout << "check here\n";
+        }
         if (pr->isDebug)cout << "move7\n";
         if (nodeU->posInSol > nodeV->posInSol)return false;        
         if (uSuc == nodeV || uSuc == vPred)return false;
@@ -743,12 +746,12 @@ public:
         int bestInsPos;
         double valNewCost;
         for (int i = 1; i <= nbIns; ++i) {
-            valSet.clear();
-            newMinCost = oo;
-            bestInsPos = -1;
+            valSet.clear();            
             for (auto idIns: setIdRmv)if (check[idIns] == 0) {
                 //check the difference of cost between before and after
                 Node* valNode = depot->pred;
+                newMinCost = oo;
+                bestInsPos = -1;
                 while (true)
                 {
                     valNode = valNode->suc;
