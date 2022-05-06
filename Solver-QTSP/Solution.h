@@ -541,7 +541,7 @@ public:
     //...oriUuv... and ...oriUuxv... are trivial cases
     bool move7() {
         if (uPred->idxClient == 14 && nodeV->idxClient == 28) {
-            cout << "check here\n";
+            cout << "check here\n";//?? issue here can't reverse
         }
         if (pr->isDebug)cout << "move7\n";
         if (nodeU->posInSol > nodeV->posInSol)return false;        
