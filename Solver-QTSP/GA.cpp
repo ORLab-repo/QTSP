@@ -11,10 +11,10 @@ GA::~GA()
 
 void GA::updateBiasedFitnesses()
 {
-   /* vector<DI> ranking;
+    vector<DI> ranking;
     for (int i = 1; i <= curNPop; i++)
     {
-        ranking.push_back({ -pop[i]->averageBrokenPairsDistanceClosest(nClose), i});
+        ranking.push_back({ -pop[i]->averageBrokenPairsDistanceClosest(nClose), i});    
     }
     sort(ranking.begin(), ranking.end());    
     
@@ -23,13 +23,13 @@ void GA::updateBiasedFitnesses()
         double fitRank = (double)ranking[i].second / (curNPop);
         if (curNPop <= nElite)pop[ranking[i].second]->biasedFitness = fitRank;
         else pop[ranking[i].second]->biasedFitness = fitRank + (1.0 - (double)nElite / curNPop) * divRank;
-    }*/
-    for (int i = 1; i <= curNPop; ++i) {
-        //double fitRank = (double)(i) / (curNPop);        
-        double fitRank = i;
-        pop[i]->biasedFitness = fitRank;
     }
-    FindAdapt();
+    //for (int i = 1; i <= curNPop; ++i) {
+    //    //double fitRank = (double)(i) / (curNPop);        
+    //    double fitRank = i;
+    //    pop[i]->biasedFitness = fitRank;
+    //}
+    //FindAdapt();
 }
 
 void GA::removeWorstIndv()
@@ -113,18 +113,18 @@ void GA::FindAdapt()
 int GA::getChild()
 {
     /// binary tournament
-    //int u = pr->Rng.getNumInRan(1, curNPop);
-    //int v = pr->Rng.getNumInRan(1, curNPop);
-    ///*return (pop[u]->cost < pop[v]->cost) ? u : v;*/
-    //return (pop[u]->biasedFitness < pop[v]->biasedFitness) ? u : v;
+    int u = pr->Rng.getNumInRan(1, curNPop);
+    int v = pr->Rng.getNumInRan(1, curNPop);
+    /*return (pop[u]->cost < pop[v]->cost) ? u : v;*/
+    return (pop[u]->biasedFitness < pop[v]->biasedFitness) ? u : v;
     ///routle wheel selection
-    double percent = pr->Rng.genRealInRang01();
+    /*double percent = pr->Rng.genRealInRang01();
     double sum1 = 0;
     for (int i = 1; i <= curNPop; ++i) {
         sum1 += adapt[i];
         if (sumAdapt * percent <= sum1)return i;
     }
-    return 1;
+    return 1;*/
 }
 
 void GA::choose(int& u, int& v)
@@ -144,6 +144,13 @@ void GA::choose(int& u, int& v)
 
 void GA::uni(Solution* u, Solution* v, Solution* u1, Solution* v1)
 {
+    /*if (pr->Rng.genRealInRang01_muta() > 1 - pM) {
+        equalSol(u1, u);
+        u1->calCost();
+        u1->pertubation(true);
+        u1->updateObj();
+        return;
+    }*/
     deque<int> q;
     q.clear();
     int* idu = new int[n + 1];
@@ -229,7 +236,7 @@ void GA::uni(Solution* u, Solution* v, Solution* u1, Solution* v1)
     u1->calCost();  
     if (pr->Rng.genRealInRang01_muta() > 1 - pM) {
         //for (int i = 1; i <= nMut; ++i)u1->exchange();
-        u1->pertubation();
+        u1->pertubation(true);
     }
     u1->updateObj();   
     //v1->Split(); v1->updateTotal();
@@ -305,7 +312,8 @@ void GA::InitPopu(bool isEdu = true)
     //cout << "start init: " << curNPop << "\n";
     while (curNPop != nPop) {       
         //cout << curNPop << "\n";
-        valPop->genGiantT();
+        //valPop->genGiantT();
+        valPop->randomIns();
         valPop->calCost();
         if(isEdu)valPop->updateObj();
         //cout<<valPop->cost<<endl;
@@ -393,18 +401,19 @@ void GA::findGasSol(int maxNumGas)
         }
         // if bestSol don't change 100 times change 25 worst sols by 25 new sols
         //if(numNotCha>=200){numNotCha=0;addPopu();}
-        //if (curNumRou >= maxNumRou) {      
-        /*
-        if (numNotCha == (int)(0.4*ItNI))
-        {
-            //threshold = min(threshold - 1, 1);
-            int oldBestObj = bestSol->cost;
-            DiversifyPopu(bestSol);
-            if (bestSol->cost != oldBestObj) {
-                numNotCha = 0;
-                pr->fileOut << (double)(clock() - be) / CLOCKS_PER_SEC << "\n";
-            }
-        }*/       
+        //if (curNumRou >= maxNumRou) {              
+        //if (numNotCha == (int)(0.4*ItNI))
+        //{
+        //    //threshold = min(threshold - 1, 1);
+        //    double oldBestObj = bestSol->cost;
+        //    DiversifyPopu(bestSol);
+        //    if (bestSol->cost - oldBestObj > MY_EPSILON) {
+        //        numNotCha = 0;
+        //        //pr->fileOut << (double)(clock() - be) / CLOCKS_PER_SEC << "\n";
+        //        cout << "iteration: " << numga << "\n";
+        //        cout << "new best: " << bestSol->cost << "\n";
+        //    }
+        //}       
         //cout<<"best obj:\n";cout<<bestSol.obj<<endl<<endl;
         if (numNotCha == ItNI || (double)(clock() - be) / CLOCKS_PER_SEC > pr->TL) { //original termination        
             bestSol->calCost();

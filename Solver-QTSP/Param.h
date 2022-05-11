@@ -18,7 +18,8 @@ public:
 	int numLoc;// number of node	
 	vector<Location> listLoc;
 	vector<vector<int> > corDis;// correlation measure	
-	vector<vector<vector<double> >> costs;// distance	
+	//vector<vector<vector<double> >> costs;// distance	
+	double costs[204][204][204];
 	vector<vector<int> > new_costs;// distance	
 	vector<vector<int> > times;// distance		
 	vector<vector<vector<int> > > correlatedNodes;
@@ -31,7 +32,7 @@ public:
 	int delta = 40;
 	int nMut = 10;
 	double totalIntra = 0;
-	double rateMut = 0.8;
+	double rateMut = 0.5;
 	int initItSCP = 2000;	
 	//int maxNeibor = 20;// max size of neigbor vertex set for granular search (can be used for dynamically sertification).
 	int maxNeibor = 20;// max size of neigbor
@@ -50,6 +51,10 @@ public:
 	//LNS-based params:
 	int maxRmv = 40;
 	int minRmv = 5;
+	double minRateSmallRmv = 0.01;
+	double maxRateSmallRmv = 0.1;
+	double minRateBigRmv = 0.1;
+	double maxRateBigRmv = 0.3;
 	int debugLS = false;
 	bool m2Opt = false;
 	bool crosver = false;
@@ -62,7 +67,7 @@ public:
 	Param() {
 		cout << "clear param\n";		
 		listLoc.clear();
-		for (int i = 0; i < costs.size(); ++i)costs[i].clear();
-		costs.clear();		
+		/*for (int i = 0; i < costs.size(); ++i)costs[i].clear();
+		costs.clear();		*/
 	};
 };

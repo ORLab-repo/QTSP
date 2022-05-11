@@ -43,13 +43,13 @@ Param* read_Ins(string path, string type) {
             )
             );
         }
-    }
+    }    
     pr->maxRmv = min(pr->maxRmv, pr->numLoc / 3);
     cout << "finish reading\n";
     //cal distance:    
     double angle;    
     for (int i = 0; i < pr->numLoc; ++i) {
-        pr->costs.push_back(vector<vector<double>>(pr->numLoc, vector<double>(pr->numLoc)));
+        //pr->costs.push_back(vector<vector<double>>(pr->numLoc, vector<double>(pr->numLoc)));
         for (int j = 0; j < pr->numLoc; ++j) {
             for (int k = 0; k < pr->numLoc; ++k) {
                 pr->costs[i][j][k] = 0.;

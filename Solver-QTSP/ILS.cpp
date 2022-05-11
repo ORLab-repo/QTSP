@@ -18,13 +18,16 @@ void ILS::equalSol(Solution* u, Solution* v)
 
 void ILS::runAlgo()
 {
-	curSol->genGiantTOri();			
-	curSol->calCost();
+	/*curSol->genGiantTOri();			
+	curSol->calCost();*/
 	//curSol->cheapestIns();
+	curSol->randomIns();
 	cout << "ori cost: " << curSol->cost << "\n";
+	cout << curSol->calCostWtUpdate() << "\n";
+	cout << boolalpha << curSol->checkSol() << "\n";
 	curSol->updateObj();
-	curSol->exportGiantT();	
-	pr->fileOut.close();
+	/*curSol->exportGiantT();	
+	pr->fileOut.close();*/
 	cout << "improved cost: " << curSol->cost << "\n";		
 	cout << "check sol: " << boolalpha << curSol->checkSol() << "\n";	
 	cout << curSol->calCostWtUpdate() << "\n";	
@@ -32,26 +35,50 @@ void ILS::runAlgo()
 	equalSol(oriSol, curSol);
 	equalSol(bestSol, curSol);
 	cout << "initial cost: " << bestSol->cost << "\n";
+	int iter = 0;
 	for (int i = 1; i <= totalIt; ++i)
 	{
 		//cout << i << "\n";
 		equalSol(curSol, oriSol);
 		curSol->calCost();
-		curSol->pertubation();
+		curSol->pertubation(true);
+	/*	if (iter < omega) {
+			equalSol(curSol, oriSol);
+			curSol->calCost();
+			curSol->pertubation(false);
+			iter++;
+		}
+		else {
+			equalSol(curSol, bestSol);
+			curSol->calCost();
+			curSol->pertubation(true);
+			iter = 0;
+		}*/
 		curSol->updateObj();
+		//double oriCost = curSol->cost;
+		/*if ((1 + lsRate) * bestSol->cost - curSol->cost > MY_EPSILON) {
+			curSol->updateObj();
+		}*/
 		if (i % 100 == 0) {
 			cout << i << " " << "new best: " << bestSol->cost << "\n";
-		}
+		}		
+		/*if (oriSol->cost - curSol->cost > MY_EPSILON) {
+			equalSol(oriSol, curSol);
+		}	
+		if (bestSol->cost - curSol->cost > MY_EPSILON) {						
+			equalSol(bestSol, curSol);			
+			iter = 0;
+		}*/
 		if (bestSol->cost - curSol->cost > MY_EPSILON) {						
 			equalSol(bestSol, curSol);
 			//cout <<i<<" "<< "new best: " << bestSol->cost << "\n";
 			equalSol(oriSol, curSol);
 		}
 		else if ((curSol->cost - oriSol->cost)  -  oriSol->cost*acceptRate > MY_EPSILON) {
-			equalSol(oriSol, curSol);
+			equalSol(oriSol, bestSol);
 		}
 		else {
-			equalSol(oriSol, bestSol);
+			equalSol(oriSol, curSol);
 		}
 		acceptRate *= coolingRate;
 	}

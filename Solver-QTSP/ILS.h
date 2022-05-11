@@ -8,7 +8,9 @@ public:
 	int n;	
 	Param* pr;
 	double acceptRate = 0.1;
-	double coolingRate = 0.9995;	
+	double coolingRate = 0.9995;
+	double lsRate = 0.3;
+	int omega;
 	int step = 10000;
 	int totalIt = 100000;
 	Solution* bestSol;
@@ -19,6 +21,7 @@ public:
 	void init(Param* _pr) {
 		pr = _pr;
 		n = pr->numLoc - 1;
+		omega = (int)(10 * pow(n, 1.5));
 		bestSol = new Solution(pr);
 		oriSol = new Solution(pr);
 		curSol = new Solution(pr);

@@ -28,7 +28,6 @@ int main(int argc, char* argv[]) {
 		}
 		if (string(argv[i]) == "-type") {
 			type = argv[i + 1];
-
 		}
 	}
 	string pathIn = "PointSets\\" + nameIns;
@@ -38,16 +37,17 @@ int main(int argc, char* argv[]) {
 	pr->Rng.config(seed[0]);
 	cout << setprecision(5) << fixed;		
 	//pr->isDebug = true;
-	Solution bestSol(pr);
-	for (int i = 0; i <= bestSol.n; ++i)bestSol.giantT[i] = arr[i];
-	//bestSol.genGiantT();
-	bestSol.calCost();
-	////bestSol.exportGiantT();
-	//////bestSol.cheapestIns();	
-	cout << bestSol.cost << "\n";
-	bestSol.updateObj();
-	cout << bestSol.cost << "\n";
-	cout << "check sol: " << bestSol.calCostWtUpdate() << "\n";		
+	//Solution bestSol(pr);
+	//for (int i = 0; i <= bestSol.n; ++i)bestSol.giantT[i] = arr[i];
+	////bestSol.genGiantT();
+	//bestSol.calCost();
+	//////bestSol.exportGiantT();
+	////////bestSol.cheapestIns();	
+	//cout << bestSol.cost << "\n";
+	//bestSol.updateObj();
+	//bestSol.exportGiantT();
+	//cout << bestSol.cost << "\n";
+	//cout << "check sol: " << bestSol.calCostWtUpdate() << "\n";		
 	//bestSol.exportGiantT();
 	////bestSol.worstRmv(5);	
 	////bestSol.cheapestIns();
@@ -61,7 +61,7 @@ int main(int argc, char* argv[]) {
 	//cout << "nbMove5: " << bestSol.nbMove5 << "\n";
 	//cout << "nbMove6: " << bestSol.nbMove6 << "\n";
 	//cout << "nbMove7: " << bestSol.nbMove7 << "\n";
-	exit(0);
+	//exit(0);
 	ILS ilsAlgo;
 	ilsAlgo.init(pr);
 	ilsAlgo.runAlgo();

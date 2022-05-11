@@ -7,8 +7,8 @@ class GA
 public:
 	int n;
 	double bestCost;
-	const int nClose = 5;
-	const int nElite = 4;	
+	const int nClose = 2;
+	const int nElite = 1;	
 	/*int nPop = 40;
 	int delta = 80;*/
 	int nPop = 25;
@@ -16,7 +16,7 @@ public:
 	/*const int ItSCP = 1000;
 	const int ItNI = 3000;
 	const int nMut = 10;*/	
-	const int ItNI = 5000;
+	const int ItNI = 10000;
 	//const int ItNI = 30000;
 	int nMut = 10;
 	//const int ItMut = 500;
@@ -34,7 +34,7 @@ public:
 	int ddID[1000];
 	int omega = 0;
 	int threshold;	
-	double pM = 0.8;
+	double pM = 1.1;
 	Param* pr;
 	GA();
 	~GA();

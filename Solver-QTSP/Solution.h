@@ -2,11 +2,11 @@
 #include "lib.h"
 #include "Node.h"
 
-class Solution {    
-public:    
+class Solution {
+public:
     vector<int> giantT;//giant tour
-	vector<Node*> nodes;// for nodes
-    Param* pr;    
+    vector<Node*> nodes;// for nodes
+    Param* pr;
     double cost;// objective
     int n;// number of customers    
     bool isFinished;//used for LS
@@ -14,7 +14,7 @@ public:
     vector<SeqData*> mySeq;
     SeqData* seqSet;
     SeqData* seqDep;
-    SeqData* valSeq[12];    
+    SeqData* valSeq[12];
     //LNS-based pertubation part:
     vector<int> setIdRmv;
     set<DI> setRmv;
@@ -41,7 +41,7 @@ public:
         pr = _pr;
         n = pr->numLoc - 1;//not cointain depot
         for (int i = 0; i <= n; ++i) {
-            giantT.pb(0);            
+            giantT.pb(0);
         }
         for (int i = 1; i <= n + 3; ++i)nodes.pb(new Node());
         setIdRmv.clear();
@@ -51,8 +51,8 @@ public:
             setIdRmv.push_back(i);
         }
         ordNodeLs.push_back(n + 1);
-        nodes[n + 1]->idxClient = 0;        
-        depot = nodes[n + 1];        
+        nodes[n + 1]->idxClient = 0;
+        depot = nodes[n + 1];
         depot->isDepot = true;
         depot->posInSol = 0;
         int maxSizeSeq = 7 * (n + 1) + 1;
@@ -60,7 +60,7 @@ public:
         for (int i = 0; i < maxSizeSeq; ++i)myseqDatas[i].pr = _pr;
         seqSet = myseqDatas;
         int posSeq = 0;
-        for (int i = 1; i <= n + 1; ++i) {            
+        for (int i = 1; i <= n + 1; ++i) {
             nodes[i]->seq0_i = &myseqDatas[posSeq];
             nodes[i]->seqi_0 = &myseqDatas[posSeq + 1];
             nodes[i]->seqi_n = &myseqDatas[posSeq + 2];
@@ -76,8 +76,8 @@ public:
         seqDep->init(0);
         depot->seqi_i = seqDep;
         for (int i = 1; i <= 7; ++i)valSeq[i] = new SeqData(_pr);
-        predecessors.resize(n + 1);
-        successors.resize(n + 1);
+        predecessors.resize(n + 2);
+        successors.resize(n + 2);
     }
 
     void genGiantT() {
@@ -85,10 +85,10 @@ public:
         shuffle(giantT.begin() + 1, giantT.end(), pr->Rng.generator);
         setIdRmv.clear();
         //random_shuffle(giantT.begin() + 1, giantT.end());
-    }    
+    }
 
     void genGiantTOri() {
-        for (int i = 1; i <= n; ++i)giantT[i] = i;        
+        for (int i = 1; i <= n; ++i)giantT[i] = i;
         setIdRmv.clear();
         //random_shuffle(giantT.begin() + 1, giantT.end());
     }
@@ -123,24 +123,24 @@ public:
         }
         return result / (double)maxSize;
     }
-    void updateInfo() {        
-        Node* valNode = depot;        
+    void updateInfo() {
+        Node* valNode = depot;
         valNode->seq0_i = seqDep;
-        valNode->seqi_0 = seqDep;        
-        valNode->seqi_j->concatOneAfter(valNode->seqi_i, valNode->suc->idxClient);        
+        valNode->seqi_0 = seqDep;
+        valNode->seqi_j->concatOneAfter(valNode->seqi_i, valNode->suc->idxClient);
         valNode->seqj_i->concatOneAfter(valNode->suc->seqi_i, valNode->idxClient);
-        int u, v;        
+        int u, v;
         //update seqdata (0->i, i->0):
         while (valNode != depot->pred)
-        {    
+        {
             valNode = valNode->suc;
-            v = valNode->idxClient;            
+            v = valNode->idxClient;
             /*if (valNode->pred == depot)valNode->culCost = 0;
             else valNode->culCost = valNode->pred->culCost + pr->costs[valNode->pred->pred->idxClient][valNode->pred->idxClient][valNode->idxClient]; */
             valNode->seq0_i->concatOneAfter(valNode->pred->seq0_i, v);
             valNode->seqi_0->concatOneBefore(valNode->pred->seqi_0, v);
             valNode->seqi_j->concatOneAfter(valNode->seqi_i, valNode->suc->idxClient);
-            valNode->seqj_i->concatOneAfter(valNode->suc->seqi_i, valNode->idxClient);           
+            valNode->seqj_i->concatOneAfter(valNode->suc->seqi_i, valNode->idxClient);
             valNode->posInSol = valNode->pred->posInSol + 1;
         }
         //update seqdata(i->n, n->i):
@@ -152,11 +152,11 @@ public:
             valNode = valNode->pred;
             v = valNode->idxClient;
             valNode->seqn_i->concatOneAfter(valNode->suc->seqn_i, v);
-            valNode->seqi_n->concatOneBefore(valNode->suc->seqi_n, v);            
+            valNode->seqi_n->concatOneBefore(valNode->suc->seqi_n, v);
         }
-    }    
+    }
     /**/
-    void calCost() {        
+    void calCost() {
         cost = pr->costs[giantT[n]][giantT[0]][giantT[1]] + pr->costs[giantT[n - 1]][giantT[n]][giantT[0]];
         for (int i = 0; i <= n - 2; ++i) {
             cost += pr->costs[giantT[i]][giantT[i + 1]][giantT[i + 2]];
@@ -164,15 +164,15 @@ public:
         depot->suc = nodes[giantT[1]];
         nodes[giantT[1]]->pred = depot;
         depot->pred = nodes[giantT[n]];
-        nodes[giantT[n]]->suc = depot;        
-        for (int i = 2; i <= n; ++i) {            
-            int idV = giantT[i], idU = giantT[i - 1];            
+        nodes[giantT[n]]->suc = depot;
+        for (int i = 2; i <= n; ++i) {
+            int idV = giantT[i], idU = giantT[i - 1];
             nodes[idU]->suc = nodes[idV];
             nodes[idV]->pred = nodes[idU];
         }
-        updateInfo();        
-        reinitNegiborSet();        
-        for (int i = 1; i <= n; ++i) {
+        updateInfo();
+        reinitNegiborSet();
+        for (int i = 1; i <= n + 1; ++i) {
             predecessors[i] = nodes[i]->pred->idxClient;
             successors[i] = nodes[i]->suc->idxClient;
         }
@@ -206,7 +206,7 @@ public:
         do {
             if (val->idxClient != 0)giantT[++pos] = val->idxClient;
             val = val->suc;
-        } while (val != depot);        
+        } while (val != depot);
         /*if (pr->isDebug) {
             int* dd = new int[n + 1];
             for (int i = 1; i <= n; ++i)dd[i] = 0;
@@ -223,10 +223,10 @@ public:
 
     double calCostWtUpdate() {
         cvGiantT();
-        double res = pr->costs[giantT[n]][giantT[0]][giantT[1]] + pr->costs[giantT[n - 1]][giantT[n]][giantT[0]];        
+        double res = pr->costs[giantT[n]][giantT[0]][giantT[1]] + pr->costs[giantT[n - 1]][giantT[n]][giantT[0]];
         for (int i = 0; i <= n - 2; ++i) {
             res += pr->costs[giantT[i]][giantT[i + 1]][giantT[i + 2]];
-        }               
+        }
         return res;
     }
 
@@ -245,13 +245,13 @@ public:
             if(nodes[i]->moves.size() != 0)nodes[i]->moves.clear();
             for (auto val : sDis) {
                 nodes[i]->moves.push_back(val.sc);
-                if (nodes[i]->moves.size() == pr->maxNeibor)break;                    
+                if (nodes[i]->moves.size() == pr->maxNeibor)break;
             }
         }        */
     }
 
     //swap two nodes u and v
-    void swapNode(Node *u, Node* v){
+    void swapNode(Node* u, Node* v) {
         Node* oldVPred = v->pred;
         Node* oldVSuc = v->suc;
         Node* oldUPred = u->pred;
@@ -261,7 +261,7 @@ public:
         oldUSuc->pred = v;
         oldVPred->suc = u;
         oldVSuc->pred = u;
-        
+
         u->pred = oldVPred;
         u->suc = oldVSuc;
         v->pred = oldUPred;
@@ -285,7 +285,7 @@ public:
 
     // insert node u (not belong to tour) after node v
     void insertNodeNotInTour(Node* u, Node* v)
-    {                
+    {
         v->suc->pred = u;
         u->pred = v;
         u->suc = v->suc;
@@ -300,9 +300,9 @@ public:
         } while (val != this->depot);
         cout << "\n";
     }
-    
+
     /*SeqData*/
-    void constructSeqData(Node* startNode, Node* endNode, SeqData* resSeq) {        
+    void constructSeqData(Node* startNode, Node* endNode, SeqData* resSeq) {
         if (startNode == endNode) {
             resSeq->init(startNode->idxClient);
             return;
@@ -319,17 +319,17 @@ public:
             resSeq->cost = startNode->seq0_i->cost - endNode->suc->seq0_i->cost;
         }
         else {
-            resSeq->cost = endNode->seq0_i->cost - startNode->suc->seq0_i->cost;                        
+            resSeq->cost = endNode->seq0_i->cost - startNode->suc->seq0_i->cost;
         }
-    }    
+    }
     //relocate v after u
     bool move1() {
-        if(pr->isDebug)cout << "move1\n";
+        if (pr->isDebug)cout << "move1\n";
         //nodeU in this case can be depot (arrival depot)
-        if (nodeV == uSuc)return false;                
+        if (nodeV == uSuc)return false;
         if (nodeV->posInSol < nodeU->posInSol) {
             valSeq[1]->copy(vPred->seq0_i);
-            constructSeqData(vSuc, nodeU, valSeq[2]);            
+            constructSeqData(vSuc, nodeU, valSeq[2]);
             valSeq[3]->copy(nodeV->seqi_i);
             valSeq[4]->copy(uSuc->seqi_n);
         }
@@ -342,23 +342,23 @@ public:
         mySeq.clear();
         for (int i = 1; i <= 4; ++i)mySeq.push_back(valSeq[i]);
         double newCost = seqDep->evaluation(mySeq);
-        if (newCost - cost > -MY_EPSILON)return false;        
-        insertNode(nodeV, nodeU);           
-        updateInfo();                
+        if (newCost - cost > -MY_EPSILON)return false;
+        insertNode(nodeV, nodeU);
+        updateInfo();
         nbMove1++;
         isFinished = false;
-        cost = newCost;                
-        if (pr->isDebug && abs(cost - calCostWtUpdate()) > MY_EPSILON) {                                                
+        cost = newCost;
+        if (pr->isDebug && abs(cost - calCostWtUpdate()) > MY_EPSILON) {
             throw "bug in move1";
         }
         return true;
     }
-    
+
     //relocate v vSuc after u
     bool move2() {
         if (pr->isDebug)cout << "move2\n";
         //nodeU in this case can be depot (arrival depot)
-        if (nodeV == uSuc || nodeU == vSuc || vSuc->isDepot)return false;        
+        if (nodeV == uSuc || nodeU == vSuc || vSuc->isDepot)return false;
         if (nodeV->posInSol < nodeU->posInSol) {
             valSeq[1]->copy(vPred->seq0_i);
             constructSeqData(vSuc->suc, nodeU, valSeq[2]);
@@ -385,12 +385,12 @@ public:
             throw "bug in move2";
         }
         return true;
-    }    
+    }
     //relocate vSuc v after U
     bool move3() {
         if (pr->isDebug)cout << "move3\n";
         //nodeU in this case can be depot (arrival depot)
-        if (nodeV == uSuc || nodeU == vSuc || vSuc->isDepot)return false;        
+        if (nodeV == uSuc || nodeU == vSuc || vSuc->isDepot)return false;
         if (nodeV->posInSol < nodeU->posInSol) {
             valSeq[1]->copy(vPred->seq0_i);
             constructSeqData(vSuc->suc, nodeU, valSeq[2]);
@@ -420,9 +420,9 @@ public:
     }
     //Swaps moves:
     //swap u and v (u->pos < v->pos)    
-    bool move4() {                
+    bool move4() {
         if (pr->isDebug)cout << "move4\n";
-        if (nodeU == vPred || nodeU == vSuc)return false;        
+        if (nodeU == vPred || nodeU == vSuc)return false;
         valSeq[1]->copy(uPred->seq0_i);
         valSeq[2]->copy(nodeV->seqi_i);
         constructSeqData(uSuc, vPred, valSeq[3]);
@@ -446,7 +446,7 @@ public:
     //swap (u, uSuc) and v    
     bool move5() {
         if (pr->isDebug)cout << "move5\n";
-        if (nodeU == vPred || uSuc == vPred || nodeU == vSuc || uSuc->isDepot)return false;        
+        if (nodeU == vPred || uSuc == vPred || nodeU == vSuc || uSuc->isDepot)return false;
         if (nodeU->posInSol < nodeV->posInSol) {
             valSeq[1]->copy(uPred->seq0_i);
             valSeq[2]->copy(nodeV->seqi_i);
@@ -476,11 +476,11 @@ public:
         }
         return true;
     }
-    
+
     //swap u and (v, vSuc)
     bool move8() {
         if (pr->isDebug)cout << "move8\n";
-        if (nodeV == uPred || vSuc == uPred || nodeV == uSuc || vSuc->isDepot)return false;        
+        if (nodeV == uPred || vSuc == uPred || nodeV == uSuc || vSuc->isDepot)return false;
         if (nodeU->posInSol < nodeV->posInSol) {
             valSeq[1]->copy(uPred->seq0_i);
             valSeq[2]->copy(nodeV->seqi_j);
@@ -512,7 +512,7 @@ public:
     }
 
     //swap (u, Suc) and (v, vSuc) (u->pos < v->pos)
-    bool move6() {        
+    bool move6() {
         if (pr->isDebug)cout << "move6\n";
         if (uSuc->isDepot || vSuc->isDepot || vSuc == uPred || nodeU == vSuc || uSuc == nodeV || nodeV == uSuc->suc)return false;
         valSeq[1]->copy(uPred->seq0_i);
@@ -535,23 +535,31 @@ public:
         }
         return true;
     }
-    
+
     //2-opt
     //reverse u...v to v...u
     //...oriUuv... and ...oriUuxv... are trivial cases
-    bool move7() {
-        if (uPred->idxClient == 14 && nodeV->idxClient == 28) {
-            cout << "check here\n";//?? issue here can't reverse
-        }
+    bool move7(bool isTurn) {
         if (pr->isDebug)cout << "move7\n";
-        if (nodeU->posInSol > nodeV->posInSol)return false;        
         if (uSuc == nodeV || uSuc == vPred)return false;
-        valSeq[1]->copy(uPred->seq0_i);
-        constructSeqData(nodeV, nodeU, valSeq[2]);
-        valSeq[3]->copy(vSuc->seqi_n);
-        mySeq.clear();
-        for (int i = 1; i <= 3; ++i)mySeq.push_back(valSeq[i]);        
-        double newCost = seqDep->evaluation(mySeq);
+        double newCost;
+        if (!isTurn) {//oriUu...v....
+            /*if (nodeU->posInSol > nodeV->posInSol)return false;            */
+            valSeq[1]->copy(uPred->seq0_i);
+            constructSeqData(nodeV, nodeU, valSeq[2]);
+            valSeq[3]->copy(vSuc->seqi_n);
+            mySeq.clear();
+            for (int i = 1; i <= 3; ++i)mySeq.push_back(valSeq[i]);
+            newCost = seqDep->evaluation(mySeq);
+        }
+        else {//v...oriUu
+            valSeq[1]->copy(nodeU->seqn_i);
+            constructSeqData(vSuc, uPred, valSeq[2]);
+            valSeq[3]->copy(nodeV->seqi_0);
+            mySeq.clear();
+            for (int i = 1; i <= 3; ++i)mySeq.push_back(valSeq[i]);
+            newCost = seqDep->evaluation(mySeq);
+        }
         if (newCost - cost > -MY_EPSILON)return false;
         //update route structure:
         Node* startNode = uPred;
@@ -566,10 +574,10 @@ public:
         }
         nodeU->suc = vSuc;
         vSuc->pred = nodeU;
-        updateInfo();     
+        updateInfo();
         nbMove7++;
         isFinished = false;
-        cost = newCost;    
+        cost = newCost;
         if (pr->isDebug && abs(cost - calCostWtUpdate()) > MY_EPSILON) {
             throw "bug in move7";
         }
@@ -611,67 +619,78 @@ public:
     //    return true;
     //}
 
-    void setLocalValU() {        
+    void setLocalValU() {
         uSuc = nodeU->suc;
         uPred = nodeU->pred;
         nodeUIdx = nodeU->idxClient;
         predUIdx = uPred->idxClient;
-        sucUIdx = uSuc->idxClient;        
+        sucUIdx = uSuc->idxClient;
     }
 
     void setLocalValV() {
         vSuc = nodeV->suc;
         vPred = nodeV->pred;
-        nodeVIdx = nodeV->idxClient;        
+        nodeVIdx = nodeV->idxClient;
         predVIdx = vPred->idxClient;
-        sucVIdx = vSuc->idxClient;                
+        sucVIdx = vSuc->idxClient;
     }
-          
+
     void updateObj() {
         int oriCost = cost;
         shuffle(ordNodeLs.begin(), ordNodeLs.end(), pr->Rng.generator);
         isFinished = false;
+        bool isTurn = false;
         while (!isFinished) {
             isFinished = true;
             //cout << "updated cost: " << cost << "\n";
-            for (int posU = 0; posU < ordNodeLs.size(); ++posU) {                
-                nodeU = nodes[ordNodeLs[posU]];                
+            for (int posU = 0; posU < ordNodeLs.size(); ++posU) {
+                nodeU = nodes[ordNodeLs[posU]];
                 oriNodeU = nodeU;
                 int idNodeU = ordNodeLs[posU];
                 if (idNodeU == n + 1)idNodeU = 0;
-                int idPrvU = nodeU->pred->idxClient;                
+                int idPrvU = nodeU->pred->idxClient;
                 if (pr->Rng.getIntRand() % pr->maxNeibor == 0) {
                     shuffle(pr->correlatedNodes[idPrvU][idNodeU].begin(), pr->correlatedNodes[idPrvU][idNodeU].end(), pr->Rng.generator);
                 }
-                for (int posV = 0; posV < pr->correlatedNodes[idPrvU][idNodeU].size(); ++posV) {                                                    
-                    nodeV = nodes[pr->correlatedNodes[idPrvU][idNodeU][posV]];                    
+                for (int posV = 0; posV < pr->correlatedNodes[idPrvU][idNodeU].size(); ++posV) {
+                    isTurn = false;
+                    nodeV = nodes[pr->correlatedNodes[idPrvU][idNodeU][posV]];
                     oriNodeV = nodeV;
                     nodeU = oriNodeU;
                     setLocalValU();
                     setLocalValV();
                     if (move1())continue;//relocate 1
                     if (move2())continue;//relocate 2
-                    //if (move3())continue;//relocate 2 (reversed)
-                    //if (nodeU->suc->isDepot) continue;                                                            
-                    if (nodeU->suc->isDepot)continue;
+                    //if (move3())continue;//relocate 2 (reversed)                    
                     if (nodeU->suc == nodeV)continue;
-                    nodeU = nodeU->suc;                    
-                    setLocalValU();                  
-                    if (move5())continue;// swap 2, 1                    
-                    if (move8())continue;// swap 1, 2                    
+                    nodeU = nodeU->suc;
+                    setLocalValU();
+                    if (!nodeU->isDepot) {
+                        if (move5())continue;// swap 2, 1                    
+                        if (move8())continue;// swap 1, 2                    
+                    }
                     if (nodeU->posInSol > nodeV->posInSol) {
                         nodeV = nodeU;
                         nodeU = oriNodeV;
                         setLocalValU();
                         setLocalValV();
+                        isTurn = true;
                     }
-                    if (move4())continue;//swap 1, 1                    
-                    if (move6())continue;//swap 2, 2 
-                    if (move7())continue;//2opt
+                    if (!nodeU->isDepot) {
+                        if (move4())continue;//swap 1, 1                    
+                        if (move6())continue;//swap 2, 2          
+                    }
+                    if (isTurn) {
+                        swap(nodeU, nodeV);
+                        setLocalValU();
+                        setLocalValV();
+                    }
+                    if (move7(isTurn)) continue;
                 }
             }
-        }        
+        }
         cvGiantT();
+        calCost();
     }
 
     ///ELSALGO:
@@ -715,9 +734,33 @@ public:
         for (int i = 0; i <= n; ++i)pr->fileOut << giantT[i] << ", ";
     }
 
+    DI findBestPos(Node* insNod) {
+        //check the difference of cost between before and after
+        Node* valNode = depot->pred;
+        double newMinCost = oo;
+        int bestInsPos = -1;
+        double valNewCost;
+        while (true)
+        {
+            valNode = valNode->suc;
+            valSeq[1]->copy(valNode->seq0_i);
+            valSeq[2]->copy(insNod->seqi_i);
+            valSeq[3]->copy(valNode->suc->seqi_n);
+            mySeq.clear();
+            for (int j = 1; j <= 3; ++j)mySeq.push_back(valSeq[j]);
+            valNewCost = seqDep->evaluation(mySeq);
+            if (newMinCost > valNewCost) {
+                newMinCost = valNewCost;
+                bestInsPos = valNode->idxClient;
+                if (valNode->isDepot)bestInsPos = n + 1;
+            }
+            if (valNode == depot->pred)break;
+        }
+        return DI(newMinCost, bestInsPos);
+    }   
+
     //construction heuristics:
-    void cheapestIns() {
-        set<DII> valSet;
+    void cheapestIns() {        
         int* check = new int[n + 1];
         for (int i = 1; i <= n; ++i)check[i] = 0;
         int nbIns = setIdRmv.size();        
@@ -725,62 +768,128 @@ public:
             depot->suc = depot;
             depot->pred = depot;
             int u = pr->Rng.getNumInRan(1, n);
-            int v = pr->Rng.getNumInRan(1, n);
+            /*int v = pr->Rng.getNumInRan(1, n);
             while (u == v)
             {
                 v = pr->Rng.getNumInRan(1, n);
-            }
+            }*/
             check[u] = 1;
-            check[v] = 1;
+            //check[v] = 1;
             depot->suc = nodes[u];
             depot->pred = nodes[u];
             nodes[u]->suc = depot;
             nodes[u]->pred = depot;
-            insertNodeNotInTour(nodes[v], nodes[u]);
+            //insertNodeNotInTour(nodes[v], nodes[u]);
             updateInfo();
-            int idDepot = depot->idxClient, idNodeU = nodes[u]->idxClient, idNodeV = nodes[v]->idxClient;
+            /*int idDepot = depot->idxClient, idNodeU = nodes[u]->idxClient, idNodeV = nodes[v]->idxClient;
             cost = pr->costs[idDepot][idNodeU][idNodeV] + pr->costs[idNodeU][idNodeV][idDepot] + pr->costs[idNodeV][idDepot][idNodeU];
-            nbIns -= 2;
+            nbIns -= 2;*/
+            nbIns--;
+            cost = 0;
         }
-        double newMinCost;
-        int bestInsPos;
-        double valNewCost;
-        for (int i = 1; i <= nbIns; ++i) {
-            valSet.clear();            
+        double minCost = oo;
+        int bestId = -1;
+        int bestInsPos = -1;        
+        for (int i = 1; i <= nbIns; ++i) {             
+            minCost = oo;
             for (auto idIns: setIdRmv)if (check[idIns] == 0) {
-                //check the difference of cost between before and after
-                Node* valNode = depot->pred;
-                newMinCost = oo;
-                bestInsPos = -1;
-                while (true)
-                {
-                    valNode = valNode->suc;
-                    valSeq[1]->copy(valNode->seq0_i);
-                    valSeq[2]->copy(nodes[idIns]->seqi_i);
-                    valSeq[3]->copy(valNode->suc->seqi_n);
-                    mySeq.clear();
-                    for (int j = 1; j <= 3; ++j)mySeq.push_back(valSeq[j]);
-                    valNewCost = seqDep->evaluation(mySeq);
-                    if (newMinCost > valNewCost) {
-                        newMinCost = valNewCost;
-                        bestInsPos = valNode->idxClient;
-                        if (valNode->isDepot)bestInsPos = n + 1;
-                    }                             
-                    if (valNode == depot->pred)break;
+                DI valInfo = findBestPos(nodes[idIns]);
+                if (minCost > valInfo.first) {
+                    minCost = valInfo.first;
+                    bestId = idIns;
+                    bestInsPos = valInfo.second;
                 }
-                valSet.insert(DII(newMinCost, II(idIns, bestInsPos)));
-            }
-            DII res = *valSet.begin();
-            check[res.sc.ft] = 1;
-            insertNodeNotInTour(nodes[res.sc.ft], nodes[res.sc.sc]);
-            updateInfo();
-            cost = res.first;
-        }
+            }            
+            check[bestId] = 1;
+            insertNodeNotInTour(nodes[bestId], nodes[bestInsPos]);
+            updateInfo();            
+            cost = minCost;                       
+        }        
         cvGiantT();
         setIdRmv.clear();
         delete[] check;
     }
     
+    void randomIns() {
+        int nbIns = setIdRmv.size();
+        int idFirst = -1;
+        if (nbIns == n) { //first construction case:
+            depot->suc = depot;
+            depot->pred = depot;
+            int u = pr->Rng.getNumInRan(1, n);
+            idFirst = u;
+            /*int v = pr->Rng.getNumInRan(1, n);
+            while (u == v)
+            {
+                v = pr->Rng.getNumInRan(1, n);
+            }*/            
+            //check[v] = 1;
+            depot->suc = nodes[u];
+            depot->pred = nodes[u];
+            nodes[u]->suc = depot;
+            nodes[u]->pred = depot;
+            //insertNodeNotInTour(nodes[v], nodes[u]);
+            updateInfo();
+            /*int idDepot = depot->idxClient, idNodeU = nodes[u]->idxClient, idNodeV = nodes[v]->idxClient;
+            cost = pr->costs[idDepot][idNodeU][idNodeV] + pr->costs[idNodeU][idNodeV][idDepot] + pr->costs[idNodeV][idDepot][idNodeU];
+            nbIns -= 2;*/
+            nbIns--;
+            cost = 0;
+        }
+        shuffle(setIdRmv.begin(), setIdRmv.end(), pr->Rng.generator);
+        for (auto idIns : setIdRmv) {
+            if (idIns == idFirst)continue;
+            DI valInfo = findBestPos(nodes[idIns]);
+            insertNodeNotInTour(nodes[idIns], nodes[valInfo.sc]);
+            updateInfo();
+            cost = valInfo.ft;
+        }
+        cvGiantT();
+        setIdRmv.clear();
+    }
+
+    void nearestIns() {
+        int* check = new int[n + 1];
+        for (int i = 1; i <= n; ++i)check[i] = 0;
+        int nbIns = setIdRmv.size();
+        int idFirst = -1;
+        if (nbIns == n) { //first construction case:
+            depot->suc = depot;
+            depot->pred = depot;
+            int u = pr->Rng.getNumInRan(1, n);
+            idFirst = u;           
+            depot->suc = nodes[u];
+            depot->pred = nodes[u];
+            nodes[u]->suc = depot;
+            nodes[u]->pred = depot;            
+            updateInfo();            
+            nbIns--;
+            cost = 0;
+        }
+        double minCost = oo;
+        int bestId = -1;
+        int bestInsPos = -1;
+        for (int i = 1; i <= nbIns; ++i) {
+            minCost = oo;
+            for (auto idIns : setIdRmv)if (check[idIns] == 0) {
+                DI valInfo = findBestPos(nodes[idIns]);
+                if (minCost > valInfo.first) {
+                    minCost = valInfo.first;
+                    bestId = idIns;
+                    bestInsPos = valInfo.second;
+                }
+            }
+            check[bestId] = 1;
+            insertNodeNotInTour(nodes[bestId], nodes[bestInsPos]);
+            updateInfo();
+            cost = minCost;
+        }
+        cvGiantT();
+        setIdRmv.clear();
+        delete[] check;
+    }
+
+
     void rmvNode(Node* u) {
         u->pred->suc = u->suc;
         u->suc->pred = u->pred;
@@ -852,18 +961,36 @@ public:
     }
 
     //LNS-based pertubation
-    void pertubation() {        
-        int type = pr->Rng.getNumInRan(0, 1);
+    void pertubation(bool isLarge) {        
+        //remove
+        int typeRmv = pr->Rng.getNumInRan(0, 1);
+       /* pr->minRmv = max(1, (int)(n * pr->minRateSmallRmv));
+        pr->maxRmv = max(1, (int)(n * pr->maxRateSmallRmv));
+        if (isLarge) {
+            pr->minRmv = max(1, (int)(n * pr->minRateBigRmv));
+            pr->maxRmv = max(1, (int)(n * pr->maxRateBigRmv));
+        }*/
         int nbRmv = pr->Rng.getNumInRan(pr->minRmv, pr->maxRmv);        
-        switch (type)
+        switch (typeRmv)
         {
         case 0:
-            randomRmv(nbRmv);
+            randomRmv(nbRmv);            
+            break;
+        case 1:
+            worstRmv(nbRmv, pr->worstDeg);            
+            break;
+        default:
+            break;
+        }
+        //insertion        
+       int typeIns = pr->Rng.getNumInRan(0, 1);
+        switch (typeIns)
+        {
+        case 0:            
             cheapestIns();
             break;
         case 1:
-            worstRmv(nbRmv, pr->worstDeg);
-            cheapestIns();
+            randomIns();            
             break;
         default:
             break;
