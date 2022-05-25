@@ -16,7 +16,7 @@ public:
 	/*const int ItSCP = 1000;
 	const int ItNI = 3000;
 	const int nMut = 10;*/	
-	const int ItNI = 10000;
+	const int ItNI = 9000;
 	//const int ItNI = 30000;
 	int nMut = 10;
 	//const int ItMut = 500;

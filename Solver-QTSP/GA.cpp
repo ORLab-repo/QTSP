@@ -234,10 +234,11 @@ void GA::uni(Solution* u, Solution* v, Solution* u1, Solution* v1)
         vt++;
     }*/      
     u1->calCost();  
-    if (pr->Rng.genRealInRang01_muta() > 1 - pM) {
-        //for (int i = 1; i <= nMut; ++i)u1->exchange();
-        u1->pertubation(true);
-    }
+    //if (pr->Rng.genRealInRang01_muta() > 1 - pM) {
+    //    //for (int i = 1; i <= nMut; ++i)u1->exchange();
+    //    u1->pertubation(true);
+    //}
+    u1->pertubation(true);
     u1->updateObj();   
     //v1->Split(); v1->updateTotal();
     /*if(rand()%2==0){

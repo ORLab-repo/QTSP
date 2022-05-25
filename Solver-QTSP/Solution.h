@@ -110,6 +110,13 @@ public:
             if (predecessors[j] == 0 && valSol->predecessors[j] != 0 && valSol->successors[j] != 0) differences++;
         }
         return (double)differences / (double)n;
+        /*for (int j = 1; j <= n+1; j++)
+        {
+            if (successors[j] != valSol->successors[j] && successors[j] != valSol->predecessors[j]) differences++;
+            else if (successors[j] == valSol->successors[j] && predecessors[j] != valSol->predecessors[j]) differences++;
+            else if (successors[j] == valSol->predecessors[j] && predecessors[j] != valSol->successors[j]) differences++;
+        }
+        return (double)differences / (double)(n + 1);*/
     }
 
     double averageBrokenPairsDistanceClosest(int nbClosest) {

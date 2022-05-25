@@ -62,10 +62,10 @@ int main(int argc, char* argv[]) {
 	//cout << "nbMove6: " << bestSol.nbMove6 << "\n";
 	//cout << "nbMove7: " << bestSol.nbMove7 << "\n";
 	//exit(0);
-	ILS ilsAlgo;
+	/*ILS ilsAlgo;
 	ilsAlgo.init(pr);
 	ilsAlgo.runAlgo();
-	exit(0);
+	exit(0);*/
 	//double bestCost = oo;		
 	//for (int i = 1; i <= 1000; ++i) {		
 	//	cout << i << "\n";
