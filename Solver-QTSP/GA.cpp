@@ -91,6 +91,7 @@ void GA::equalSol(Solution* u, Solution* v)
 {
     u->cost = v->cost;
     u->biasedFitness = v->biasedFitness;
+    u->lastInsType = v->lastInsType;
     for (int i = 1; i <= n; ++i) {
         u->giantT[i] = v->giantT[i];
         u->predecessors[i] = v->predecessors[i];
@@ -112,7 +113,7 @@ void GA::FindAdapt()
 
 int GA::getChild()
 {
-    /// binary tournament
+     //binary tournament
     int u = pr->Rng.getNumInRan(1, curNPop);
     int v = pr->Rng.getNumInRan(1, curNPop);
     /*return (pop[u]->cost < pop[v]->cost) ? u : v;*/
@@ -142,15 +143,8 @@ void GA::choose(int& u, int& v)
     u=1;sumAdapt=0;*/   
 }
 
-void GA::uni(Solution* u, Solution* v, Solution* u1, Solution* v1)
-{
-    /*if (pr->Rng.genRealInRang01_muta() > 1 - pM) {
-        equalSol(u1, u);
-        u1->calCost();
-        u1->pertubation(true);
-        u1->updateObj();
-        return;
-    }*/
+void GA::uni(Solution* u, Solution* v, Solution* u1, Solution* v1, int numga)
+{   
     deque<int> q;
     q.clear();
     int* idu = new int[n + 1];
@@ -170,11 +164,12 @@ void GA::uni(Solution* u, Solution* v, Solution* u1, Solution* v1)
     int be = pr->Rng.getNumInRan(1, n);
     //int en = pr->Rng.getNumInRan(be, n);
     int en = pr->Rng.getNumInRan(1, n);    
-    while (be == en)
+    /*while (be == en)
     {
         en = pr->Rng.getNumInRan(1, n);
-    }
+    }*/
     int* dd = new int[n + 1];
+    int* mapChro = new int[n + 1];
     int vt;
     //born u:
     for (int i = 0; i <= n; ++i)
@@ -184,6 +179,7 @@ void GA::uni(Solution* u, Solution* v, Solution* u1, Solution* v1)
         u1->giantT[i] = idu[i];
         dd[idu[i]] = 1;
     }*/
+    //OX crossover:
     while (true)
     {        
         if ((en + 1) % n == idI % n)break;
@@ -214,6 +210,33 @@ void GA::uni(Solution* u, Solution* v, Solution* u1, Solution* v1)
             if (idI == 0)idI = n;
         }
     }
+
+    //PMX crossover:
+    //while (true)
+    //{
+    //    if ((en + 1) % n == idI % n)break;
+    //    u1->giantT[idI] = idu[idI];
+    //    dd[idu[idI]] = 1;
+    //    mapChro[idu[idI]] = idv[idI];    
+    //    idI++;
+    //    if (idI > n) idI = 1;
+    //}    
+
+    //int curId = en;
+    //for (int i = 1; i <= n; ++i) {
+    //    curId++;        
+    //    if (curId > n)curId = 1;
+    //    if (curId == be) break;
+    //    int resV = idv[curId];
+    //    while (dd[resV] != 0)
+    //    {
+    //        resV = mapChro[resV];
+    //    }
+    //    u1->giantT[idI] = resV;
+    //    dd[resV] = 1;        
+    //    idI = (idI + 1) % n;
+    //    if (idI == 0)idI = n;
+    //}    
     //born v:
     /*for (int i = 0; i <= n; ++i)
         dd[i] = 0;
@@ -232,14 +255,15 @@ void GA::uni(Solution* u, Solution* v, Solution* u1, Solution* v1)
         v1->giantT[vt] = q.front();
         q.pop_front();
         vt++;
-    }*/      
-    u1->calCost();  
-    //if (pr->Rng.genRealInRang01_muta() > 1 - pM) {
-    //    //for (int i = 1; i <= nMut; ++i)u1->exchange();
-    //    u1->pertubation(true);
-    //}
-    u1->pertubation(true);
-    u1->updateObj();   
+    }*/          
+    u1->calCost();          
+    if (pr->Rng.genRealInRang01_muta() > 1 - pM) {
+        /*for (int i = 1; i <= nMut; ++i)u1->exchange();
+        u1->calCost();*/
+        u1->pertubation(true);        
+        //u1->doubleBridge();
+    }        
+    u1->updateObj();
     //v1->Split(); v1->updateTotal();
     /*if(rand()%2==0){
         u1.updateObj();v1.updateObj();
@@ -323,7 +347,7 @@ void GA::InitPopu(bool isEdu = true)
 }
 
 void GA::DiversifyPopu(Solution* bestSol)
-{
+{   
     int newPop = nPop / 3;    
     while (curNPop > newPop) {
         removeWorstIndv();
@@ -379,7 +403,7 @@ void GA::findGasSol(int maxNumGas)
         for(int i=0;i<n;++i)cout<<pop[idMo].id[i]<<" ";
         cout<<endl;*/
         // hybrid
-        uni(pop[idFa], pop[idMo], child1, child2);
+        uni(pop[idFa], pop[idMo], child1, child2, numga);
         /*cout<<"children"<<endl;
         cout<<child1.obj<<" "<<child2.obj<<endl;*/
         /*for(int i=0;i<n;++i)cout<<child1.id[i]<<" ";
@@ -396,6 +420,7 @@ void GA::findGasSol(int maxNumGas)
             equalSol(bestSol, pop[1]);
             cout << "iteration: " << numga << "\n";
             cout << "new best: " << bestSol->cost << "\n";
+            cout << "ins type: " << bestSol->lastInsType << "\n";
            /* pr->fileOut << "itreation: " << numga << "\n";
             pr->fileOut << "new best: " << bestSol->cost << "\n";   */         
             //pr->fileOut << (double)(clock() - be) / CLOCKS_PER_SEC << "\n";
@@ -416,21 +441,26 @@ void GA::findGasSol(int maxNumGas)
         //    }
         //}       
         //cout<<"best obj:\n";cout<<bestSol.obj<<endl<<endl;
-        if (numNotCha == ItNI || (double)(clock() - be) / CLOCKS_PER_SEC > pr->TL) { //original termination        
+        //if (numNotCha == ItNI || (double)(clock() - be) / CLOCKS_PER_SEC > pr->TL) { //original termination        
+        if(numga == totalIT){
             bestSol->calCost();
-            /*bestSol->ckSol();*/
-            /*bestSol.printSol();
-            cout << id_test << " " << bestSol.obj << " " << (double)(clock() - be) / CLOCKS_PER_SEC << endl;
-            fl << bestSol.obj << " " << (double)(clock() - be) / CLOCKS_PER_SEC << "\n";*/
-            bestCost = bestSol->cost;
-            //cout << bestSol->cost;
-            /*cout << "Cost: " << bestSol->cost << "\n";*/            
-            pr->fileOut << fixed << setprecision(2) << "Cost: " << bestSol->cost << "\n";
-            pr->fileOut << "giantTour: ";
-            for (int i = 1; i <= n; ++i)pr->fileOut << bestSol->giantT[i] << ", ";
-            pr->fileOut << "\n";
-            //pr->fileOut <<(double)(clock() - be) / CLOCKS_PER_SEC << "\n";
-            /*pr->fileOut << "num_iterations: " << numga << "\n";*/
+            if (bestSol->checkSol()) {
+                /*bestSol.printSol();
+                cout << id_test << " " << bestSol.obj << " " << (double)(clock() - be) / CLOCKS_PER_SEC << endl;
+                fl << bestSol.obj << " " << (double)(clock() - be) / CLOCKS_PER_SEC << "\n";*/
+                bestCost = bestSol->cost;
+                //cout << bestSol->cost;
+                /*cout << "Cost: " << bestSol->cost << "\n";*/
+                pr->fileOut << fixed << setprecision(2) << "Cost: " << bestSol->cost << "\n";
+                pr->fileOut << "giantTour: ";
+                for (int i = 1; i <= n; ++i)pr->fileOut << bestSol->giantT[i] << ", ";
+                pr->fileOut << "\n";
+                //pr->fileOut <<(double)(clock() - be) / CLOCKS_PER_SEC << "\n";
+                /*pr->fileOut << "num_iterations: " << numga << "\n";*/
+            }else{
+                cout << "bug GA\n";
+                pr->fileOut << "bug GA\n";
+            }
             break;
         }
         //if((double)(clock()-be)/CLOCKS_PER_SEC>=600)break;

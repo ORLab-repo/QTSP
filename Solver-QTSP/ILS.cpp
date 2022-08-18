@@ -20,8 +20,9 @@ void ILS::runAlgo()
 {
 	/*curSol->genGiantTOri();			
 	curSol->calCost();*/
-	//curSol->cheapestIns();
-	curSol->randomIns();
+	curSol->cheapestIns();
+	//curSol->randomIns();
+	//curSol->nearestIns();
 	cout << "ori cost: " << curSol->cost << "\n";
 	cout << curSol->calCostWtUpdate() << "\n";
 	cout << boolalpha << curSol->checkSol() << "\n";
@@ -82,4 +83,35 @@ void ILS::runAlgo()
 		}
 		acceptRate *= coolingRate;
 	}
+
+	
+}
+
+void ILS::RandR(Solution* baseSol)
+{
+	// TODO: insert return statement here
+	equalSol(curSol, baseSol);
+	equalSol(oriSol, curSol);
+	equalSol(bestSol, curSol);
+	for (int i = 1; i <= totalIt; ++i)
+	{
+		//cout << i << "\n";
+		equalSol(curSol, oriSol);
+		curSol->calCost();
+		curSol->pertubation(true);
+
+		if (bestSol->cost - curSol->cost > MY_EPSILON) {
+			equalSol(bestSol, curSol);
+			//cout <<i<<" "<< "new best: " << bestSol->cost << "\n";
+			equalSol(oriSol, curSol);
+		}
+		else if ((curSol->cost - oriSol->cost) - oriSol->cost * acceptRate > MY_EPSILON) {
+			equalSol(oriSol, bestSol);
+		}
+		else {
+			equalSol(oriSol, curSol);
+		}
+		acceptRate *= coolingRate;
+	}
+
 }

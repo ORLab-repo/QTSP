@@ -21,8 +21,8 @@ Param* read_Ins(string path, string type) {
         if (lineCont[0] == "TYPE:") {
             continue;
         }
-        if (lineCont[0] == "DIMENSION:") {
-            pr->numLoc = stoi(lineCont[1]);
+        if (lineCont[0] == "DIMENSION:") {            
+            pr->numLoc = stoi(lineCont[1]);            
             continue;
         }
         if (lineCont[0] == "EDGE_WEIGHT_TYPE:") {

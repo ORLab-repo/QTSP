@@ -20,6 +20,7 @@ int seed[] = {
 	10415237,
 };
 string nameIns = "PointSet_150_3.tsp";
+//string nameIns = "PointSet_50_1.tsp";
 string type = "ag";
 int main(int argc, char* argv[]) {	
 	for (int i = 1; i < argc; ++i) {		
@@ -37,13 +38,15 @@ int main(int argc, char* argv[]) {
 	pr->Rng.config(seed[0]);
 	cout << setprecision(5) << fixed;		
 	//pr->isDebug = true;
-	//Solution bestSol(pr);
+	//Solution bestSol(pr);	
 	//for (int i = 0; i <= bestSol.n; ++i)bestSol.giantT[i] = arr[i];
-	////bestSol.genGiantT();
+	//bestSol.genGiantT();
 	//bestSol.calCost();
+	//bestSol.oldCalCost();
 	//////bestSol.exportGiantT();
 	////////bestSol.cheapestIns();	
-	//cout << bestSol.cost << "\n";
+	//cout << boolalpha << bestSol.checkSol() << "\n";
+	//cout << bestSol.cost << " " << bestSol.calCostWtUpdate() << "\n";
 	//bestSol.updateObj();
 	//bestSol.exportGiantT();
 	//cout << bestSol.cost << "\n";
@@ -118,12 +121,12 @@ int main(int argc, char* argv[]) {
 			//system("pause");
 		}
 		minCost = min(minCost, Algo.bestCost);
-		sumCost += Algo.bestCost;
-		cout << "name ins: " << nameIns << " " << numRun << " " << Algo.bestCost << "\n";
+		sumCost += Algo.bestCost;		
 		end = std::chrono::system_clock::now();
 		std::chrono::duration<double> elapsed_seconds = end - start;
 		std::time_t end_time = std::chrono::system_clock::to_time_t(end);		
 		pr->fileOut << "elapsed time: " << elapsed_seconds.count() << "s\n\n";
+		cout << "name ins: " << nameIns << " " << numRun << " " << Algo.bestCost <<" "<< elapsed_seconds.count() << "\n";
 	}
 	pr->fileOut << fixed << setprecision(2) << "best run: " << minCost << "\n";
 	pr->fileOut << fixed << setprecision(2) << "avg run: " << (double)sumCost / 10 << "\n";

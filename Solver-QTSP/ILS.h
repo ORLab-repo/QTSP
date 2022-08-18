@@ -11,8 +11,10 @@ public:
 	double coolingRate = 0.9995;
 	double lsRate = 0.3;
 	int omega;
-	int step = 10000;
+	//int step = 10000;
+	int step = 1;
 	int totalIt = 100000;
+	//int totalIt = 1000;
 	Solution* bestSol;
 	Solution* oriSol;
 	Solution* curSol;		
@@ -29,5 +31,6 @@ public:
 	}	
 	void equalSol(Solution* u, Solution* v);
 	void runAlgo();
+	void RandR(Solution* baseSol);
 private:
 };

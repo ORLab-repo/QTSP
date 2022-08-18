@@ -37,6 +37,7 @@ public:
     Node* curNodeV;
     int nodeUIdx, nodeVIdx, predUIdx, predVIdx, sucUIdx, sucVIdx;
     int nbMove1 = 0, nbMove2 = 0, nbMove3 = 0, nbMove4 = 0, nbMove5 = 0, nbMove6 = 0, nbMove7 = 0, nbMove8 = 0;
+    int lastInsType;
     Solution(Param* _pr) {
         pr = _pr;
         n = pr->numLoc - 1;//not cointain depot
@@ -55,6 +56,7 @@ public:
         depot = nodes[n + 1];
         depot->isDepot = true;
         depot->posInSol = 0;
+        nodes[0] = depot;
         int maxSizeSeq = 7 * (n + 1) + 1;
         SeqData* myseqDatas = new SeqData[maxSizeSeq];
         for (int i = 0; i < maxSizeSeq; ++i)myseqDatas[i].pr = _pr;
@@ -163,6 +165,67 @@ public:
         }
     }
     /**/
+    // insert depot into its best position...
+    //void calCost() {
+    //    cost = pr->costs[giantT[n - 1]][giantT[n]][giantT[1]] + pr->costs[giantT[n]][giantT[1]][giantT[2]];
+    //    for (int i = 1; i <= n - 2; ++i) {
+    //        cost += pr->costs[giantT[i]][giantT[i + 1]][giantT[i + 2]];
+    //    }
+    //    int prvPos = n;
+    //    int sucPos = 1;
+    //    double minChangeCost = -(pr->costs[giantT[n - 1]][giantT[n]][giantT[1]] + pr->costs[giantT[n]][giantT[1]][giantT[2]])
+    //        + (pr->costs[giantT[n]][giantT[0]][giantT[1]] + pr->costs[giantT[n - 1]][giantT[n]][giantT[0]] + pr->costs[giantT[0]][giantT[1]][giantT[2]]);        
+    //    double valChangeCost;
+    //    int prvI;
+    //    int sucI1;
+    //    for (int i = 1; i <= n - 1; ++i) {
+    //        prvI = i - 1;
+    //        if (prvI == 0)prvI = n;
+    //        sucI1 = i + 2;
+    //        if (sucI1 == n + 1)sucI1 = 1;
+    //        valChangeCost = -(pr->costs[giantT[prvI]][giantT[i]][giantT[i + 1]] + pr->costs[giantT[i]][giantT[i + 1]][giantT[sucI1]])
+    //            + (pr->costs[giantT[i]][giantT[0]][giantT[i + 1]] + pr->costs[giantT[prvI]][giantT[i]][giantT[0]] + pr->costs[giantT[0]][giantT[i + 1]][giantT[sucI1]]);
+    //        if (valChangeCost < minChangeCost) {
+    //            minChangeCost = valChangeCost;
+    //            prvPos = i;
+    //            sucPos = i + 1;
+    //        }
+    //    }
+    //    cost += minChangeCost;
+    //    //construct route
+    //    nodes[giantT[1]]->pred = nodes[giantT[n]];
+    //    nodes[giantT[n]]->suc = nodes[giantT[1]];
+    //    for (int i = 2; i <= n; ++i) {
+    //        int idV = giantT[i], idU = giantT[i - 1];
+    //        nodes[idU]->suc = nodes[idV];
+    //        nodes[idV]->pred = nodes[idU];
+    //    }
+    //    //insert depot into its best position:
+    //    nodes[giantT[prvPos]]->suc = depot;
+    //    depot->pred = nodes[giantT[prvPos]];
+    //    nodes[giantT[sucPos]]->pred = depot;
+    //    depot->suc = nodes[giantT[sucPos]];
+    //    /*cost = pr->costs[giantT[n]][giantT[0]][giantT[1]] + pr->costs[giantT[n - 1]][giantT[n]][giantT[0]];
+    //    for (int i = 0; i <= n - 2; ++i) {
+    //        cost += pr->costs[giantT[i]][giantT[i + 1]][giantT[i + 2]];
+    //    }
+    //    depot->suc = nodes[giantT[1]];
+    //    nodes[giantT[1]]->pred = depot;
+    //    depot->pred = nodes[giantT[n]];
+    //    nodes[giantT[n]]->suc = depot;
+    //    for (int i = 2; i <= n; ++i) {
+    //        int idV = giantT[i], idU = giantT[i - 1];
+    //        nodes[idU]->suc = nodes[idV];
+    //        nodes[idV]->pred = nodes[idU];
+    //    }*/
+    //    updateInfo();
+    //    reinitNegiborSet();
+    //    for (int i = 1; i <= n + 1; ++i) {
+    //        predecessors[i] = nodes[i]->pred->idxClient;
+    //        successors[i] = nodes[i]->suc->idxClient;
+    //    }
+    //}
+
     void calCost() {
         cost = pr->costs[giantT[n]][giantT[0]][giantT[1]] + pr->costs[giantT[n - 1]][giantT[n]][giantT[0]];
         for (int i = 0; i <= n - 2; ++i) {
@@ -190,11 +253,11 @@ public:
         for (int i = 1; i <= n; ++i)dd[i] = 0;
         Node* val = depot;
         int pos = 0;
-        do {
+        do {            
             if (val->idxClient != 0) {
                 dd[val->idxClient] = 1;
                 pos++;
-            }
+            }            
             val = val->suc;
         } while (val != depot);
         for (int i = 1; i <= n; ++i)if (dd[i] == 0) {
@@ -207,10 +270,22 @@ public:
         return true;
     }
 
+    bool checkGiantT() {
+        int* dd = new int[n + 1];
+        for (int i = 1; i <= n; ++i)dd[i] = 0;
+        for (int i = 1; i <= n; ++i)dd[giantT[i]] = 1;
+        for (int i = 1; i <= n; ++i)if (dd[i] == 0) {
+            delete[] dd;
+            return false;
+        }        
+        delete[] dd;
+        return true;        
+    }
+
     void cvGiantT() {
         Node* val = depot;
         int pos = 0;
-        do {
+        do {            
             if (val->idxClient != 0)giantT[++pos] = val->idxClient;
             val = val->suc;
         } while (val != depot);
@@ -696,8 +771,10 @@ public:
                 }
             }
         }
+        double oldCost = cost;
         cvGiantT();
         calCost();
+        //if (oldCost - cost > MY_EPSILON)updateObj();
     }
 
     ///ELSALGO:
@@ -813,6 +890,7 @@ public:
             cost = minCost;                       
         }        
         cvGiantT();
+        calCost();
         setIdRmv.clear();
         delete[] check;
     }
@@ -852,10 +930,15 @@ public:
             cost = valInfo.ft;
         }
         cvGiantT();
+        calCost();
         setIdRmv.clear();
     }
 
-    void nearestIns() {
+    double calEdgeCost(Node* u, Node* v, Node* k) {
+        return pr->costs[u->idxClient][v->idxClient][k->idxClient];
+    }
+
+    void nearestIns() {        
         int* check = new int[n + 1];
         for (int i = 1; i <= n; ++i)check[i] = 0;
         int nbIns = setIdRmv.size();
@@ -869,29 +952,46 @@ public:
             depot->pred = nodes[u];
             nodes[u]->suc = depot;
             nodes[u]->pred = depot;            
+            check[u] = 1;            
             updateInfo();            
             nbIns--;
             cost = 0;
         }
+        Node* firstT = depot;
+        Node* lastT = depot->pred;
         double minCost = oo;
         int bestId = -1;
         int bestInsPos = -1;
         for (int i = 1; i <= nbIns; ++i) {
             minCost = oo;
-            for (auto idIns : setIdRmv)if (check[idIns] == 0) {
-                DI valInfo = findBestPos(nodes[idIns]);
-                if (minCost > valInfo.first) {
-                    minCost = valInfo.first;
+            for (auto idIns : setIdRmv)if (check[idIns] == 0) {                
+                if (calEdgeCost(nodes[idIns], firstT, firstT->suc) < minCost) {
+                    minCost = calEdgeCost(nodes[idIns], firstT, firstT->suc);
                     bestId = idIns;
-                    bestInsPos = valInfo.second;
+                    bestInsPos = firstT->idxClient;
                 }
+                if (calEdgeCost(lastT->pred, lastT, nodes[idIns]) < minCost) {
+                    minCost = calEdgeCost(lastT->pred, lastT, nodes[idIns]);
+                    bestId = idIns;
+                    bestInsPos = lastT->idxClient;
+                }                
+            }
+            if (bestInsPos == firstT->idxClient){                        
+                addEdge(nodes[bestId], firstT);
+                firstT = nodes[bestId];
+            }
+            else {                
+                addEdge(lastT, nodes[bestId]);
+                lastT = nodes[bestId];
             }
             check[bestId] = 1;
-            insertNodeNotInTour(nodes[bestId], nodes[bestInsPos]);
-            updateInfo();
-            cost = minCost;
+            /*insertNodeNotInTour(nodes[bestId], nodes[bestInsPos]);
+            updateInfo();*/
+            /*cost = minCost;*/
         }
+        addEdge(lastT, firstT);
         cvGiantT();
+        calCost();
         setIdRmv.clear();
         delete[] check;
     }
@@ -966,6 +1066,34 @@ public:
         calNewCost();
         setRmv.clear();
     }
+    
+    void addEdge(Node* U, Node* V) {        
+        U->suc = V;
+        V->pred = U;
+    }
+
+    void doubleBridge() {
+        int step = (n + 1) / 4 - 1;
+        int pos0 = 0;
+        int pos0_p = n;
+
+        int pos1 = 1 + pr->Rng.getNumInRan(0, step);
+        int pos1_p = pos1 - 1;
+        
+        int pos2 = 1 + pos1 + pr->Rng.getNumInRan(0, step);
+        int pos2_p = pos2 - 1;
+
+        int pos3 = 1 + pos2 + pr->Rng.getNumInRan(0, step);
+        int pos3_p = pos3 - 1;
+
+        addEdge(nodes[giantT[pos2_p]], nodes[giantT[pos0]]);
+        addEdge(nodes[giantT[pos0_p]], nodes[giantT[pos2]]);
+        addEdge(nodes[giantT[pos1_p]], nodes[giantT[pos3]]);
+        addEdge(nodes[giantT[pos3_p]], nodes[giantT[pos1]]);
+        
+        cvGiantT();
+        calCost();        
+    }
 
     //LNS-based pertubation
     void pertubation(bool isLarge) {        
@@ -990,7 +1118,8 @@ public:
             break;
         }
         //insertion        
-       int typeIns = pr->Rng.getNumInRan(0, 1);
+       int typeIns = pr->Rng.getNumInRan(0, 1);              
+       lastInsType = typeIns;       
         switch (typeIns)
         {
         case 0:            
@@ -998,6 +1127,9 @@ public:
             break;
         case 1:
             randomIns();            
+            break;
+        case 2: 
+            nearestIns();
             break;
         default:
             break;
