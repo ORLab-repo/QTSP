@@ -22,7 +22,9 @@ Param* read_Ins(string path, string type) {
             continue;
         }
         if (lineCont[0] == "DIMENSION:") {            
-            pr->numLoc = stoi(lineCont[1]);            
+            pr->numLoc = stoi(lineCont[1]);
+            //add artificial depot:
+            //pr->numLoc = stoi(lineCont[1]) + 1;
             continue;
         }
         if (lineCont[0] == "EDGE_WEIGHT_TYPE:") {
@@ -47,7 +49,7 @@ Param* read_Ins(string path, string type) {
     pr->maxRmv = min(pr->maxRmv, pr->numLoc / 3);
     cout << "finish reading\n";
     //cal distance:    
-    double angle;    
+    double angle;
     for (int i = 0; i < pr->numLoc; ++i) {
         //pr->costs.push_back(vector<vector<double>>(pr->numLoc, vector<double>(pr->numLoc)));
         for (int j = 0; j < pr->numLoc; ++j) {
@@ -77,7 +79,7 @@ Param* read_Ins(string path, string type) {
     for (int i = 0; i < pr->numLoc; ++i) {
         pr->correlatedNodes[i] = vector<vector<int> >(pr->numLoc + 1);
         for (int j = 0; j < pr->numLoc; ++j)if (i != j) {
-            pr->correlatedNodes[i][j].clear();            
+            pr->correlatedNodes[i][j].clear();
             sortProx.clear();
             for (int k = 1; k < pr->numLoc; ++k)if (i != k && k != j)sortProx.insert(II(pr->costs[i][j][k], k));
             /*shuffle(pr->correlatedNodes[i].begin(), pr->correlatedNodes[i].end(), pr->Rng.generator);
@@ -85,13 +87,13 @@ Param* read_Ins(string path, string type) {
             {
                 pr->correlatedNodes[i].pop_back();
             }*/
-            for (auto val : sortProx) {             
+            for (auto val : sortProx) {
                 pr->correlatedNodes[i][j].push_back(val.second);
                 if (pr->correlatedNodes[i][j].size() == pr->maxNeibor)break;
-            }            
-         }
+            }
+        }
     }
-   
+
     return pr;
 }
 

@@ -10,10 +10,12 @@ public:
 	/*const int nClose = 2;
 	const int nElite = 1;	*/
 	const int nClose = 3;
-	const int nElite = 10;	
+	const int nElite = 10;
+	/*const int nClose = 2;
+	const int nElite = 5;*/
 	/*int nPop = 15;
 	int delta = 25;*/
-	int nPop = 20;
+	int nPop = 25;
 	int delta = 40;
 	/*const int ItSCP = 1000;
 	const int ItNI = 3000;
@@ -71,7 +73,8 @@ public:
     void equalSol(Solution* u, Solution* v);    
     void FindAdapt();    
     int getChild();    
-    void choose(int& u, int& v);    
+    void choose(int& u, int& v);
+	double getDiversity();
     void uni(Solution* u, Solution* v, Solution* u1, Solution* v1, int numga);
     void insertNew(Solution* u);
     void DelPopu();

@@ -21,7 +21,7 @@ public:
     //GA parts:
     vector<int> predecessors; // store prev node of each client  
     vector<int> successors; // store next node of each client  
-    multiset<pair<int, Solution*>> indivsPerProximity;
+    multiset<pair<double, Solution*>> indivsPerProximity;
     double biasedFitness; // Biased fitness of the solution
     vector<int> ordNodeLs; // using for LS
     Node* depot;
@@ -36,12 +36,12 @@ public:
     Node* curNodeU;
     Node* curNodeV;
     int nodeUIdx, nodeVIdx, predUIdx, predVIdx, sucUIdx, sucVIdx;
-    int nbMove1 = 0, nbMove2 = 0, nbMove3 = 0, nbMove4 = 0, nbMove5 = 0, nbMove6 = 0, nbMove7 = 0, nbMove8 = 0;
+    int nbMove1 = 0, nbMove2 = 0, nbMove3 = 0, nbMove4 = 0, nbMove5 = 0, nbMove6 = 0, nbMove7 = 0, nbMove8 = 0, nbMove9 = 0;
     int lastInsType;
     Solution(Param* _pr) {
         pr = _pr;
         n = pr->numLoc - 1;//not cointain depot
-        for (int i = 0; i <= n; ++i) {
+        for (int i = 0; i <= n + 1; ++i) {
             giantT.pb(0);
         }
         for (int i = 1; i <= n + 3; ++i)nodes.pb(new Node());
@@ -84,7 +84,7 @@ public:
 
     void genGiantT() {
         for (int i = 1; i <= n; ++i)giantT[i] = i;
-        shuffle(giantT.begin() + 1, giantT.end(), pr->Rng.generator);
+        shuffle(giantT.begin() + 1, giantT.begin() + n + 1, pr->Rng.generator);
         setIdRmv.clear();
         //random_shuffle(giantT.begin() + 1, giantT.end());
     }
@@ -110,7 +110,7 @@ public:
         {
             if (successors[j] != valSol->successors[j] && successors[j] != valSol->predecessors[j]) differences++;
             if (predecessors[j] == 0 && valSol->predecessors[j] != 0 && valSol->successors[j] != 0) differences++;
-        }
+        }        
         return (double)differences / (double)n;
         /*for (int j = 1; j <= n+1; j++)
         {
@@ -133,6 +133,7 @@ public:
         return result / (double)maxSize;
     }
     void updateInfo() {
+        //TODO: edit update after adding artificial depot.
         Node* valNode = depot;
         valNode->seq0_i = seqDep;
         valNode->seqi_0 = seqDep;
@@ -228,6 +229,7 @@ public:
 
     void calCost() {
         cost = pr->costs[giantT[n]][giantT[0]][giantT[1]] + pr->costs[giantT[n - 1]][giantT[n]][giantT[0]];
+        //cost = pr->costs[giantT[n]][giantT[1]][giantT[2]] + pr->costs[giantT[n - 1]][giantT[n]][giantT[1]]; //artificial case
         for (int i = 0; i <= n - 2; ++i) {
             cost += pr->costs[giantT[i]][giantT[i + 1]][giantT[i + 2]];
         }
@@ -288,7 +290,7 @@ public:
         do {            
             if (val->idxClient != 0)giantT[++pos] = val->idxClient;
             val = val->suc;
-        } while (val != depot);
+        } while (val != depot);        
         /*if (pr->isDebug) {
             int* dd = new int[n + 1];
             for (int i = 1; i <= n; ++i)dd[i] = 0;
@@ -465,6 +467,41 @@ public:
         cost = newCost;
         if (pr->isDebug && abs(cost - calCostWtUpdate()) > MY_EPSILON) {
             throw "bug in move2";
+        }
+        return true;
+    }
+    //relocate v vSuc vSucSuc after u
+    bool move9() {
+        if (pr->isDebug)cout << "move9\n";
+        //nodeU in this case can be depot (arrival depot)
+        if (nodeV == uSuc || nodeU == vSuc ||  vSuc->isDepot
+            || nodeU == vSuc->suc || vSuc->suc->isDepot)return false;
+        if (nodeV->posInSol < nodeU->posInSol) {
+            valSeq[1]->copy(vPred->seq0_i);
+            constructSeqData(vSuc->suc->suc, nodeU, valSeq[2]);
+            constructSeqData(nodeV, vSuc->suc, valSeq[3]);            
+            valSeq[4]->copy(uSuc->seqi_n);
+        }
+        else {
+            valSeq[1]->copy(nodeU->seq0_i);            
+            constructSeqData(nodeV, vSuc->suc, valSeq[2]);
+            constructSeqData(uSuc, vPred, valSeq[3]);
+            valSeq[4]->copy(vSuc->suc->suc->seqi_n);
+        }
+        mySeq.clear();
+        for (int i = 1; i <= 4; ++i)mySeq.push_back(valSeq[i]);
+        double newCost = seqDep->evaluation(mySeq);
+        if (newCost - cost > -MY_EPSILON)return false;
+        Node* vSucSuc = vSuc->suc;
+        insertNode(nodeV, nodeU);
+        insertNode(vSuc, nodeV);        
+        insertNode(vSucSuc, vSuc);
+        updateInfo();
+        nbMove9++;
+        isFinished = false;
+        cost = newCost;
+        if (pr->isDebug && abs(cost - calCostWtUpdate()) > MY_EPSILON) {            
+            throw "bug in move9";
         }
         return true;
     }
@@ -743,6 +780,7 @@ public:
                     setLocalValV();
                     if (move1())continue;//relocate 1
                     if (move2())continue;//relocate 2
+                    //if (move9())continue;//relocate 3
                     //if (move3())continue;//relocate 2 (reversed)                    
                     if (nodeU->suc == nodeV)continue;
                     nodeU = nodeU->suc;
@@ -770,11 +808,18 @@ public:
                     if (move7(isTurn)) continue;
                 }
             }
+
         }
-        double oldCost = cost;
+        double oldCost = cost;        
         cvGiantT();
         calCost();
+        int bestI1, bestI2, bestJ1, bestJ2;
+        double test4opt = doubleBridge(false, bestI1, bestI2, bestJ1, bestJ2);
+        //cout << oldCost << " " << cost << " " << test4opt << "\n";
         //if (oldCost - cost > MY_EPSILON)updateObj();
+        if (test4opt > -MY_EPSILON) return;        
+        doubleBridge(true, bestI1, bestI2, bestJ1, bestJ2);
+        updateObj();        
     }
 
     ///ELSALGO:
@@ -895,6 +940,12 @@ public:
         delete[] check;
     }
     
+    void recoverSetRmv() {
+        setIdRmv.clear();
+        for (int i = 1; i <= n; ++i) {            
+            setIdRmv.push_back(i);
+        }
+    }
     void randomIns() {
         int nbIns = setIdRmv.size();
         int idFirst = -1;
@@ -922,13 +973,13 @@ public:
             cost = 0;
         }
         shuffle(setIdRmv.begin(), setIdRmv.end(), pr->Rng.generator);
-        for (auto idIns : setIdRmv) {
+        for (auto idIns : setIdRmv) {            
             if (idIns == idFirst)continue;
             DI valInfo = findBestPos(nodes[idIns]);
             insertNodeNotInTour(nodes[idIns], nodes[valInfo.sc]);
             updateInfo();
             cost = valInfo.ft;
-        }
+        }        
         cvGiantT();
         calCost();
         setIdRmv.clear();
@@ -1025,6 +1076,19 @@ public:
         delete[] rmvIdx;
     }
 
+    void blockRmv(int nbRmv) {
+        if (setIdRmv.size() == n)setIdRmv.clear();
+        int idRmv = pr->Rng.getNumInRan(1, n);        
+        for (int i = 1; i <= nbRmv; ++i) {
+            rmvNode(nodes[giantT[idRmv]]);
+            setIdRmv.push_back(giantT[idRmv]);
+            idRmv++;
+            if (idRmv == n + 1)idRmv = 1;
+        }
+        updateInfo();
+        calNewCost();        
+    }
+
     void changeRmvOnSet(Node* changedNode) {
         if (changedNode->isDepot)return;
         setRmv.erase(setRmv.find(DI(changedNode->rmvCost, changedNode->idxClient)));
@@ -1072,8 +1136,45 @@ public:
         V->pred = U;
     }
 
-    void doubleBridge() {
-        int step = (n + 1) / 4 - 1;
+    double doubleBridge(bool isChanged,int &valI1, int& valI2, int& valJ1, int& valJ2) {        
+        int bestI1 = valI1, bestI2 = valI2, bestJ1 = valJ1, bestJ2 = valJ2;
+        double changedCost = oo;
+        if (!isChanged) {            
+            for (int i1 = 0; i1 <= n; ++i1)
+                for (int i2 = i1 + 1; i2 <= n; ++i2)
+                    for (int j1 = i2 + 1; j1 <= n; ++j1)
+                        for (int j2 = j1 + 1; j2 <= n - 1; ++j2) {
+                            mySeq.clear();
+                            valSeq[1]->copy(nodes[giantT[i1]]->seq0_i);
+                            constructSeqData(nodes[giantT[j1 + 1]], nodes[giantT[j2]], valSeq[2]);
+                            constructSeqData(nodes[giantT[i2 + 1]], nodes[giantT[j1]], valSeq[3]);
+                            constructSeqData(nodes[giantT[i1 + 1]], nodes[giantT[i2]], valSeq[4]);
+                            valSeq[5]->copy(nodes[giantT[j2 + 1]]->seqi_n);
+                            for (int i = 1; i <= 5; ++i)mySeq.push_back(valSeq[i]);
+                            double valChangedCost = seqDep->evaluation(mySeq) - cost;
+                            if (changedCost > valChangedCost) {
+                                changedCost = valChangedCost;
+                                bestI1 = i1;
+                                bestI2 = i2;
+                                bestJ1 = j1;
+                                bestJ2 = j2;
+                            }
+                        }
+            valI1 = bestI1; valI2 = bestI2; valJ1 = bestJ1; valJ2 = bestJ2;
+        }
+        if (isChanged) {
+            addEdge(nodes[giantT[bestI1]], nodes[giantT[bestJ1 + 1]]);
+            addEdge(nodes[giantT[bestJ2]], nodes[giantT[bestI2 + 1]]);
+            addEdge(nodes[giantT[bestJ1]], nodes[giantT[bestI1 + 1]]);
+            addEdge(nodes[giantT[bestI2]], nodes[giantT[bestJ2 + 1]]);
+            cvGiantT();
+            if (!checkGiantT()) {
+                cout << "bug here\n";
+            }
+            calCost();
+        }
+        return changedCost;
+        /*int step = (n + 1) / 4 - 1;
         int pos0 = 0;
         int pos0_p = n;
 
@@ -1092,13 +1193,13 @@ public:
         addEdge(nodes[giantT[pos3_p]], nodes[giantT[pos1]]);
         
         cvGiantT();
-        calCost();        
+        calCost();        */
     }
 
     //LNS-based pertubation
     void pertubation(bool isLarge) {        
         //remove
-        int typeRmv = pr->Rng.getNumInRan(0, 1);
+        int typeRmv = pr->Rng.getNumInRan(0, 2);
        /* pr->minRmv = max(1, (int)(n * pr->minRateSmallRmv));
         pr->maxRmv = max(1, (int)(n * pr->maxRateSmallRmv));
         if (isLarge) {
@@ -1113,6 +1214,9 @@ public:
             break;
         case 1:
             worstRmv(nbRmv, pr->worstDeg);            
+            break;
+        case 2:
+            blockRmv(nbRmv);
             break;
         default:
             break;
