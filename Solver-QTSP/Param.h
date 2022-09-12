@@ -20,6 +20,10 @@ public:
 	vector<vector<int> > corDis;// correlation measure	
 	//vector<vector<vector<double> >> costs;// distance	
 	double costs[204][204][204];
+	double fSup[204][204];
+	double fMain[204][204];
+	int predSup[204][204];
+	int predMain[204][204];
 	vector<vector<int> > new_costs;// distance	
 	vector<vector<int> > times;// distance		
 	vector<vector<vector<int> > > correlatedNodes;
@@ -65,7 +69,7 @@ public:
 	
 	string pathOut;
 	RandomGenerator Rng;
-	Param() {
+	~Param() {
 		cout << "clear param\n";		
 		listLoc.clear();
 		/*for (int i = 0; i < costs.size(); ++i)costs[i].clear();

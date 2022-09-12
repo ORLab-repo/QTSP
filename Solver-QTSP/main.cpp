@@ -19,8 +19,8 @@ int seed[] = {
 	96527670,
 	10415237,
 };
-string nameIns = "PointSet_90_5.tsp";
-//string nameIns = "PointSet_50_3.tsp";
+//string nameIns = "PointSet_75_4.tsp";
+string nameIns = "PointSet_150_3.tsp";
 string type = "ag";
 int main(int argc, char* argv[]) {	
 	for (int i = 1; i < argc; ++i) {		
@@ -39,13 +39,20 @@ int main(int argc, char* argv[]) {
 	cout << setprecision(5) << fixed;		
 	//pr->isDebug = true;
 	//Solution bestSol(pr);	
-	//for (int i = 0; i <= bestSol.n; ++i)bestSol.giantT[i] = arr[i];
-	////bestSol.genGiantT();	
+	////for (int i = 0; i <= bestSol.n; ++i)bestSol.giantT[i] = arr[i];
+	//bestSol.genGiantT();	
+	//bestSol.genGiantT();
 	//bestSol.calCost();
-	//int i1, i2, i3, i4;
-	//bestSol.doubleBridge(false, i1, i2, i3, i4);
-	//bestSol.doubleBridge(true, i1, i2, i3, i4);
 	//cout << bestSol.cost << "\n";
+	//int i1, i2, i3, i4;
+	//cout << bestSol.fastDoubleBridge(i1, i2, i3, i4) << "\n";	
+	//bestSol.apply4Opt(i1, i2, i3, i4);
+	//cout << bestSol.cost << "\n";
+	/*bestSol.doubleBridge(false, i1, i2, i3, i4);
+	//cout << i1 << " " << i2 << " " << i3 << " " << i4 << "\n";
+	//bestSol.doubleBridge(true, i1, i2, i3, i4);
+	//cout << bestSol.cost << "\n";	*/
+	//exit(0);
 	//bestSol.updateObj();
 	////bestSol.oldCalCost();
 	////////bestSol.exportGiantT();

@@ -814,11 +814,13 @@ public:
         cvGiantT();
         calCost();
         int bestI1, bestI2, bestJ1, bestJ2;
-        double test4opt = doubleBridge(false, bestI1, bestI2, bestJ1, bestJ2);
+        //double test4opt = doubleBridge(false, bestI1, bestI2, bestJ1, bestJ2);
+        double test4opt = fastDoubleBridge(bestI1, bestI2, bestJ1, bestJ2);
         //cout << oldCost << " " << cost << " " << test4opt << "\n";
         //if (oldCost - cost > MY_EPSILON)updateObj();
         if (test4opt > -MY_EPSILON) return;        
-        doubleBridge(true, bestI1, bestI2, bestJ1, bestJ2);
+        //doubleBridge(true, bestI1, bestI2, bestJ1, bestJ2);
+        apply4Opt(bestI1, bestI2, bestJ1, bestJ2);
         updateObj();        
     }
 
@@ -1162,16 +1164,8 @@ public:
                         }
             valI1 = bestI1; valI2 = bestI2; valJ1 = bestJ1; valJ2 = bestJ2;
         }
-        if (isChanged) {
-            addEdge(nodes[giantT[bestI1]], nodes[giantT[bestJ1 + 1]]);
-            addEdge(nodes[giantT[bestJ2]], nodes[giantT[bestI2 + 1]]);
-            addEdge(nodes[giantT[bestJ1]], nodes[giantT[bestI1 + 1]]);
-            addEdge(nodes[giantT[bestI2]], nodes[giantT[bestJ2 + 1]]);
-            cvGiantT();
-            if (!checkGiantT()) {
-                cout << "bug here\n";
-            }
-            calCost();
+        if (isChanged) {            
+            apply4Opt(bestI1, bestI2, bestJ1, bestJ2);
         }
         return changedCost;
         /*int step = (n + 1) / 4 - 1;
@@ -1194,6 +1188,73 @@ public:
         
         cvGiantT();
         calCost();        */
+    }
+    void apply4Opt(const int& bestI1, const int& bestI2, const int& bestJ1, const int& bestJ2) {
+        addEdge(nodes[giantT[bestI1]], nodes[giantT[bestJ1 + 1]]);
+        addEdge(nodes[giantT[bestJ2]], nodes[giantT[bestI2 + 1]]);
+        addEdge(nodes[giantT[bestJ1]], nodes[giantT[bestI1 + 1]]);
+        addEdge(nodes[giantT[bestI2]], nodes[giantT[bestJ2 + 1]]);
+        cvGiantT();
+        if (!checkGiantT()) {
+            cout << "bug here\n";
+        }
+        calCost();
+    }
+    
+    double costEGiantT(const int &i, const int &j, const int &k) {       
+        return pr->costs[giantT[i]][giantT[j]][giantT[k]];
+    }    
+    double cal2DOpt(const int &valI, const int &valJ) {        
+        //valI-1 = -1 -> valI = n
+        //valJ+2 = n+1 -> valJ = 0
+        int valIsub1 = valI - 1;
+        if (valIsub1 == -1) valIsub1 = n;
+        return costEGiantT(valIsub1, valI, valJ + 1) + costEGiantT(valI, valJ + 1, valJ + 2)
+            + costEGiantT(valJ, valI + 1, valI + 2) + costEGiantT(valJ - 1, valJ, valI + 1)
+            - costEGiantT(valIsub1, valI, valI + 1) - costEGiantT(valI, valI + 1, valI + 2)
+            - costEGiantT(valJ - 1, valJ, valJ + 1) - costEGiantT(valJ, valJ + 1, valJ + 2);
+    }
+    double fastDoubleBridge(int& valI1, int& valI2, int& valJ1, int& valJ2) {
+    //double fastDoubleBridge() {
+        int bestI1 = 0, bestI2 = 0, bestJ1 = 0, bestJ2 = 0;
+        double changedCost = oo;
+        for (int j = 4; j <= n - 3; ++j) {
+            pr->predSup[2][j] = 0;//save i1 for best i2, j1
+            pr->fSup[2][j] = cal2DOpt(0, j);
+            for (int i = 3; i <= j - 2; ++i) {                
+                pr->predSup[i][j] = i - 2;
+                pr->fSup[i][j] = cal2DOpt(i - 2, j);
+                if (pr->fSup[i][j] - pr->fSup[i - 1][j] > -MY_EPSILON) {
+                    pr->fSup[i][j] = pr->fSup[i - 1][j];
+                    pr->predSup[i][j] = pr->predSup[i - 1][j];
+                }
+            }
+        }
+        double valCost;
+        for (int i = 2; i <= n - 5; ++i) {
+            pr->predMain[i][i + 4] = i + 2;//save j1 for best i2, j2
+            pr->fMain[i][i + 4] = pr->fSup[i][i + 2];
+            for (int j = i + 5; j <= n - 1; ++j) {
+                pr->predMain[i][j] = j - 2;
+                pr->fMain[i][j] = pr->fSup[i][j - 2];
+                if (pr->fMain[i][j] - pr->fMain[i][j - 1] > -MY_EPSILON) {
+                    pr->fMain[i][j] = pr->fMain[i][j - 1];
+                    pr->predMain[i][j] = pr->predMain[i][j - 1];
+                }
+                valCost = pr->fMain[i][j] + cal2DOpt(i, j);
+                if (changedCost - valCost > -MY_EPSILON) {
+                    changedCost = valCost;
+                    bestI2 = i;
+                    bestJ2 = j;
+                    bestJ1 = pr->predMain[i][j];
+                    bestI1 = pr->predSup[i][bestJ1];
+                }
+            }
+        }
+        valI1 = bestI1; valI2 = bestI2; valJ1 = bestJ1; valJ2 = bestJ2;
+        //cout << bestI1 << " " << bestI2 << " " << bestJ1 << " " << bestJ2 << "\n";
+        //return cost + changedCost;
+        return changedCost;
     }
 
     //LNS-based pertubation
