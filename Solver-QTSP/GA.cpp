@@ -269,9 +269,16 @@ void GA::uni(Solution* u, Solution* v, Solution* u1, Solution* v1, int numga)
     if (pr->Rng.genRealInRang01_muta() > 1 - pM) {
         /*for (int i = 1; i <= nMut; ++i)u1->exchange();
         u1->calCost();*/
-        u1->pertubation(true);        
-        //u1->doubleBridge(true);
-    }        
+        u1->pertubation(true);
+        //u1->doubleBridge(true);                
+        /*int i1, i2, i3, i4;
+        u1->fastDoubleBridge(i1, i2, i3, i4);
+        u1->apply4Opt(i1, i2, i3, i4);*/
+    }
+     if (pr->Rng.genRealInRang01() < pr->rate4Opt) {
+         pr->use4Opt = true;
+     }
+     else pr->use4Opt = false;
     u1->updateObj();
     //v1->Split(); v1->updateTotal();
     /*if(rand()%2==0){
@@ -346,11 +353,17 @@ void GA::InitPopu(bool isEdu = true)
     //cout << "start init: " << curNPop << "\n";    
     //while (curNPop != nPop) {       
     for (int i = 0; i < 4 * nPop; ++i) {                
-        cout << curNPop << "\n";
+        //cout << curNPop << "\n";
         //valPop->genGiantT();
         valPop->recoverSetRmv();        
         valPop->randomIns();            
-        if(isEdu)valPop->updateObj();        
+        valPop->pertubation(true);
+        if (isEdu) {
+            if (pr->Rng.genRealInRang01() < pr->rate4Opt) {
+                pr->use4Opt = true;
+            }else pr->use4Opt = false;
+            valPop->updateObj();
+        }
         insertNew(valPop);
     }
 
@@ -362,7 +375,7 @@ void GA::DiversifyPopu(Solution* bestSol)
     while (curNPop > newPop) {
         removeWorstIndv();
     }
-    InitPopu(true);
+    InitPopu(lsInInit);
     if (bestSol->cost > pop[1]->cost) {
         //pop[i].printSol();
         equalSol(bestSol, pop[1]);
@@ -379,7 +392,7 @@ void GA::findGasSol(int maxNumGas)
     clock_t be = clock();
     // generate population with 50 sols
     curNPop = 0;
-    InitPopu(true);    
+    InitPopu(lsInInit);    
     /*for(int i=1;i<=25;++i){
         for(int j=0;j<n;++j)out<<pop[i].id[j]<<" ";
         out<<endl;
@@ -434,8 +447,8 @@ void GA::findGasSol(int maxNumGas)
             equalSol(bestSol, pop[1]);
             cout << "iteration: " << numga << "\n";
             cout << "new best: " << bestSol->cost << "\n";
-            cout << "ins type: " << bestSol->lastInsType << "\n";
-            for (int i = 1; i <= n; ++i)cout << bestSol->giantT[i] << ", ";
+            /*cout << "ins type: " << bestSol->lastInsType << "\n";
+            for (int i = 1; i <= n; ++i)cout << bestSol->giantT[i] << ", ";*/
             cout << "\n";
            /* pr->fileOut << "itreation: " << numga << "\n";
             pr->fileOut << "new best: " << bestSol->cost << "\n";   */         
@@ -445,9 +458,9 @@ void GA::findGasSol(int maxNumGas)
         //if(numNotCha>=200){numNotCha=0;addPopu();}
         //if (curNumRou >= maxNumRou) {              
         //if (numNotCha == (int)(0.4*ItNI))
-        if (numga % 30 == 0) {            
+        /*if (numga % 30 == 0) {            
             cout << "diversity param at " << numga << ": " << getDiversity() << "\n";
-        }
+        }*/
         if (numNotCha != 0 && numNotCha % 4000 == 0)
         {
             //threshold = min(threshold - 1, 1);

@@ -37,7 +37,9 @@ public:
 	int nMut = 10;
 	double totalIntra = 0;
 	double rateMut = 1.1;
+	double rate4Opt = 0.3;
 	int initItSCP = 2000;	
+	bool use4Opt = false;
 	//int maxNeibor = 20;// max size of neigbor vertex set for granular search (can be used for dynamically sertification).
 	int maxNeibor = 20;// max size of neigbor
 	//int maxNeibor = 30;// max size of neigbor
@@ -55,7 +57,7 @@ public:
 	int pMax = 2;
 	//LNS-based params:
 	int maxRmv = 40;
-	int minRmv = 5;
+	int minRmv = 5;	
 	double minRateSmallRmv = 0.01;
 	double maxRateSmallRmv = 0.1;
 	double minRateBigRmv = 0.1;

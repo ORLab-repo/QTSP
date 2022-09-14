@@ -759,6 +759,7 @@ public:
         shuffle(ordNodeLs.begin(), ordNodeLs.end(), pr->Rng.generator);
         isFinished = false;
         bool isTurn = false;
+        int bestI1, bestI2, bestJ1, bestJ2;                
         while (!isFinished) {
             isFinished = true;
             //cout << "updated cost: " << cost << "\n";
@@ -807,21 +808,22 @@ public:
                     }
                     if (move7(isTurn)) continue;
                 }
-            }
-
+            }                     
         }
         double oldCost = cost;        
         cvGiantT();
-        calCost();
-        int bestI1, bestI2, bestJ1, bestJ2;
-        //double test4opt = doubleBridge(false, bestI1, bestI2, bestJ1, bestJ2);
-        double test4opt = fastDoubleBridge(bestI1, bestI2, bestJ1, bestJ2);
-        //cout << oldCost << " " << cost << " " << test4opt << "\n";
-        //if (oldCost - cost > MY_EPSILON)updateObj();
-        if (test4opt > -MY_EPSILON) return;        
-        //doubleBridge(true, bestI1, bestI2, bestJ1, bestJ2);
-        apply4Opt(bestI1, bestI2, bestJ1, bestJ2);
-        updateObj();        
+        calCost();       
+        if (pr->use4Opt) {
+            //double test4opt = doubleBridge(false, bestI1, bestI2, bestJ1, bestJ2);
+            if (n <= 5)return;// not use 4-opt for 5 customers
+            double test4opt = fastDoubleBridge(bestI1, bestI2, bestJ1, bestJ2);
+            //cout << oldCost << " " << cost << " " << test4opt << "\n";
+            //if (oldCost - cost > MY_EPSILON)updateObj();
+            if (test4opt > -MY_EPSILON) return;
+            //doubleBridge(true, bestI1, bestI2, bestJ1, bestJ2);
+            apply4Opt(bestI1, bestI2, bestJ1, bestJ2);
+            updateObj();
+        }
     }
 
     ///ELSALGO:
@@ -1138,6 +1140,17 @@ public:
         V->pred = U;
     }
 
+    double cal4optCost(int i1, int i2, int j1, int j2) {
+        mySeq.clear();
+        valSeq[1]->copy(nodes[giantT[i1]]->seq0_i);
+        constructSeqData(nodes[giantT[j1 + 1]], nodes[giantT[j2]], valSeq[2]);
+        constructSeqData(nodes[giantT[i2 + 1]], nodes[giantT[j1]], valSeq[3]);
+        constructSeqData(nodes[giantT[i1 + 1]], nodes[giantT[i2]], valSeq[4]);
+        valSeq[5]->copy(nodes[giantT[j2 + 1]]->seqi_n);
+        for (int i = 1; i <= 5; ++i)mySeq.push_back(valSeq[i]);
+        return seqDep->evaluation(mySeq) - cost;
+    }
+
     double doubleBridge(bool isChanged,int &valI1, int& valI2, int& valJ1, int& valJ2) {        
         int bestI1 = valI1, bestI2 = valI2, bestJ1 = valJ1, bestJ2 = valJ2;
         double changedCost = oo;
@@ -1145,16 +1158,9 @@ public:
             for (int i1 = 0; i1 <= n; ++i1)
                 for (int i2 = i1 + 1; i2 <= n; ++i2)
                     for (int j1 = i2 + 1; j1 <= n; ++j1)
-                        for (int j2 = j1 + 1; j2 <= n - 1; ++j2) {
-                            mySeq.clear();
-                            valSeq[1]->copy(nodes[giantT[i1]]->seq0_i);
-                            constructSeqData(nodes[giantT[j1 + 1]], nodes[giantT[j2]], valSeq[2]);
-                            constructSeqData(nodes[giantT[i2 + 1]], nodes[giantT[j1]], valSeq[3]);
-                            constructSeqData(nodes[giantT[i1 + 1]], nodes[giantT[i2]], valSeq[4]);
-                            valSeq[5]->copy(nodes[giantT[j2 + 1]]->seqi_n);
-                            for (int i = 1; i <= 5; ++i)mySeq.push_back(valSeq[i]);
-                            double valChangedCost = seqDep->evaluation(mySeq) - cost;
-                            if (changedCost > valChangedCost) {
+                        for (int j2 = j1 + 1; j2 <= n - 1; ++j2) {                                                        
+                            double valChangedCost = cal4optCost(i1, i2, j1, j2);
+                            if (changedCost - valChangedCost > -MY_EPSILON) {
                                 changedCost = valChangedCost;
                                 bestI1 = i1;
                                 bestI2 = i2;
@@ -1195,9 +1201,9 @@ public:
         addEdge(nodes[giantT[bestJ1]], nodes[giantT[bestI1 + 1]]);
         addEdge(nodes[giantT[bestI2]], nodes[giantT[bestJ2 + 1]]);
         cvGiantT();
-        if (!checkGiantT()) {
+        /*if (!checkGiantT()) {
             cout << "bug here\n";
-        }
+        }*/
         calCost();
     }
     
@@ -1213,7 +1219,8 @@ public:
             + costEGiantT(valJ, valI + 1, valI + 2) + costEGiantT(valJ - 1, valJ, valI + 1)
             - costEGiantT(valIsub1, valI, valI + 1) - costEGiantT(valI, valI + 1, valI + 2)
             - costEGiantT(valJ - 1, valJ, valJ + 1) - costEGiantT(valJ, valJ + 1, valJ + 2);
-    }
+    }    
+
     double fastDoubleBridge(int& valI1, int& valI2, int& valJ1, int& valJ2) {
     //double fastDoubleBridge() {
         int bestI1 = 0, bestI2 = 0, bestJ1 = 0, bestJ2 = 0;
@@ -1251,6 +1258,112 @@ public:
                 }
             }
         }
+        /*for (int i1 = 0; i1 <= n; ++i1)
+            for (int i2 = i1 + 1; i2 <= n; ++i2)
+                for (int j1 = i2 + 1; j1 <= n; ++j1)
+                    for (int j2 = j1 + 1; j2 <= n - 1; ++j2) */
+        int i1, i2, j1, j2;
+        
+        //O(n^3)
+        //for (i1 = 0; i1 < n; ++i1) {
+        //    //i1+1 = i2
+        //    i2 = i1 + 1;
+        //    for (j1 = i2 + 1; j1 < n; ++j1)
+        //        for (int j2 = j1 + 1; j2 < n; ++j2) {
+        //            valCost = cal4optCost(i1, i2, j1, j2);
+        //            if (changedCost - valCost > -MY_EPSILON) {
+        //                changedCost = valCost;
+        //                bestI1 = i1;
+        //                bestI2 = i2;
+        //                bestJ1 = j1;
+        //                bestJ2 = j2;
+        //            }
+        //        }
+        //    
+        //    //i2+1 = j1
+        //    for (i2 = i1 + 1; i2 < n; ++i2) {
+        //        j1 = i2 + 1;
+        //        for (j2 = j1 + 1; j2 < n; ++j2) {
+        //            valCost = cal4optCost(i1, i2, j1, j2);
+        //            if (changedCost - valCost > -MY_EPSILON) {
+        //                changedCost = valCost;
+        //                bestI1 = i1;
+        //                bestI2 = i2;
+        //                bestJ1 = j1;
+        //                bestJ2 = j2;
+        //            }
+        //        }
+        //    }
+
+        //    //j1+1 = j2
+        //    for (i2 = i1 + 1; i2 < n; ++i2)
+        //        for (j1 = i2 + 1; j1 < n; ++j1) {
+        //            j2 = j1 + 1;
+        //            if (j2 == n)continue;
+        //            valCost = cal4optCost(i1, i2, j1, j2);
+        //            if (changedCost - valCost > -MY_EPSILON) {
+        //                changedCost = valCost;
+        //                bestI1 = i1;
+        //                bestI2 = i2;
+        //                bestJ1 = j1;
+        //                bestJ2 = j2;
+        //            }
+        //        }
+        //}
+
+        //O(n^2)
+        for (i1 = 0; i1 < n-3; ++i1) {
+            //i1+1=i2 i2+1=j1
+            i2 = i1 + 1;
+            j1 = i2 + 1;
+            for (int j2 = j1 + 2; j2 < n; ++j2) {
+                valCost = cal4optCost(i1, i2, j1, j2);
+                if (changedCost > valCost) {
+                    changedCost = valCost;
+                    bestI1 = i1;
+                    bestI2 = i2;
+                    bestJ1 = j1;
+                    bestJ2 = j2;
+                }
+            }
+
+            //i1+1=i2 j1+1=j2
+            for (j1 = i2 + 2; j1 < n - 1; ++j1) {
+                j2 = j1 + 1;
+                valCost = cal4optCost(i1, i2, j1, j2);
+                if (changedCost > valCost) {
+                    changedCost = valCost;
+                    bestI1 = i1;
+                    bestI2 = i2;
+                    bestJ1 = j1;
+                    bestJ2 = j2;
+                }
+            }        
+
+            //i2+1=j1 j1+1=j2
+            for (i2 = i1 + 2; i2 < n - 2; ++i2) {
+                j1 = i2 + 1;
+                j2 = j1 + 1;
+                valCost = cal4optCost(i1, i2, j1, j2);
+                if (changedCost > valCost) {
+                    changedCost = valCost;
+                    bestI1 = i1;
+                    bestI2 = i2;
+                    bestJ1 = j1;
+                    bestJ2 = j2;
+                }
+            }
+            //i1+1=i2 i2+1=j1 j1+1=j2
+            i2 = i1 + 1; j1 = i2 + 1; j2 = j1 + 1;
+            valCost = cal4optCost(i1, i2, j1, j2);            
+            if (changedCost > valCost) {                
+                changedCost = valCost;
+                bestI1 = i1;
+                bestI2 = i2;
+                bestJ1 = j1;
+                bestJ2 = j2;
+            }
+        }
         valI1 = bestI1; valI2 = bestI2; valJ1 = bestJ1; valJ2 = bestJ2;
         //cout << bestI1 << " " << bestI2 << " " << bestJ1 << " " << bestJ2 << "\n";
         //return cost + changedCost;
@@ -1259,15 +1372,16 @@ public:
 
     //LNS-based pertubation
     void pertubation(bool isLarge) {        
+        if (n <= 5)return;
         //remove
-        int typeRmv = pr->Rng.getNumInRan(0, 2);
+        int typeRmv = pr->Rng.getNumInRan(0, 1);
        /* pr->minRmv = max(1, (int)(n * pr->minRateSmallRmv));
         pr->maxRmv = max(1, (int)(n * pr->maxRateSmallRmv));
         if (isLarge) {
             pr->minRmv = max(1, (int)(n * pr->minRateBigRmv));
             pr->maxRmv = max(1, (int)(n * pr->maxRateBigRmv));
         }*/
-        int nbRmv = pr->Rng.getNumInRan(pr->minRmv, pr->maxRmv);        
+        int nbRmv = pr->Rng.getNumInRan(pr->minRmv, pr->maxRmv);                
         switch (typeRmv)
         {
         case 0:

@@ -6,7 +6,7 @@
 
 using namespace std;
 
-int arr[] = { 0, 11, 15, 29, 10, 1, 5, 28, 32, 56, 68, 34, 18, 58, 53, 31, 21, 39, 70, 7, 44, 33, 65, 69, 42, 12, 62, 3, 25, 37, 49, 35, 9, 46, 40, 41, 23, 73, 8, 63, 2, 16, 30, 20, 27, 24, 61, 50, 22, 47, 60, 36, 54, 43, 45, 71, 72, 17, 66, 6, 13, 64, 38, 19, 74, 67, 55, 51, 14, 4, 26, 52, 48, 57, 59, };
+int arr[] = { 0, 57, 70, 18, 32, 30, 74, 4, 2, 77, 29, 58, 73, 8, 9, 82, 47, 56, 17, 71, 68, 65, 11, 13, 42, 26, 36, 64, 24, 44, 48, 61, 75, 3, 40, 83, 50, 5, 60, 14, 6, 66, 33, 12, 81, 39, 1, 67, 76, 62, 79, 43, 16, 69, 46, 28, 27, 52, 7, 35, 63, 53, 22, 84, 49, 37, 31, 72, 21, 54, 51, 10, 78, 38, 80, 25, 34, 23, 19, 55, 20, 45, 59, 41, 15,};
 int seed[] = {
 	18319894,
 	23390422,
@@ -19,9 +19,11 @@ int seed[] = {
 	96527670,
 	10415237,
 };
-//string nameIns = "PointSet_75_4.tsp";
-string nameIns = "PointSet_150_3.tsp";
+//string nameIns = "PointSet_10_5.tsp";
+string nameIns = "PointSet_165_6.tsp";
+//string nameIns = "PointSet_200_2.tsp";
 string type = "ag";
+double rate4Opt = 0.3;
 int main(int argc, char* argv[]) {	
 	for (int i = 1; i < argc; ++i) {		
 		if (string(argv[i]) == "-nameIns") {
@@ -30,20 +32,27 @@ int main(int argc, char* argv[]) {
 		if (string(argv[i]) == "-type") {
 			type = argv[i + 1];
 		}
+		if (string(argv[i]) == "-rate4Opt") {
+			rate4Opt = atof(argv[i + 1]);
+		}
 	}
 	string pathIn = "PointSets\\" + nameIns;
 	string pathOut = "solution\\" + nameIns + "_" + type + ".sol";
+	cout << nameIns << "\n";
 	Param* pr = read_Ins(pathIn, type);		
+	pr->rate4Opt = rate4Opt;
+	cout << "rate 4 opt: " << pr->rate4Opt << "\n";
 	pr->fileOut.open(pathOut);
 	pr->Rng.config(seed[0]);
 	cout << setprecision(5) << fixed;		
 	//pr->isDebug = true;
-	//Solution bestSol(pr);	
-	////for (int i = 0; i <= bestSol.n; ++i)bestSol.giantT[i] = arr[i];
+	/*Solution bestSol(pr);	
+	for (int i = 0; i <= bestSol.n; ++i)bestSol.giantT[i] = arr[i];
+	cout << boolalpha << bestSol.checkGiantT() << "\n";*/
 	//bestSol.genGiantT();	
 	//bestSol.genGiantT();
-	//bestSol.calCost();
-	//cout << bestSol.cost << "\n";
+	/*bestSol.calCost();
+	cout << bestSol.cost << "\n";	*/
 	//int i1, i2, i3, i4;
 	//cout << bestSol.fastDoubleBridge(i1, i2, i3, i4) << "\n";	
 	//bestSol.apply4Opt(i1, i2, i3, i4);

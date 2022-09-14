@@ -34,6 +34,7 @@ public:
 
     //gen number in range [u,v]
     int getNumInRan(int u, int v) {
+        if (u > v)return v;
         return (generator() % (v - u + 1)) + u;
     }
     /*

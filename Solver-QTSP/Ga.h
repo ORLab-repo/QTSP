@@ -8,11 +8,12 @@ public:
 	int n;
 	double bestCost;
 	/*const int nClose = 2;
-	const int nElite = 1;	*/
-	const int nClose = 3;
-	const int nElite = 10;
-	/*const int nClose = 2;
-	const int nElite = 5;*/
+	const int nElite = 1;*/
+	/*const int nClose = 3;
+	const int nElite = 10;*/
+	const int nClose = 2;
+	const int nElite = 5;
+	bool lsInInit = true;
 	/*int nPop = 15;
 	int delta = 25;*/
 	int nPop = 25;
