@@ -24,6 +24,8 @@ public:
 	double fMain[204][204];
 	int predSup[204][204];
 	int predMain[204][204];
+	vector<int> setIdIns;
+	vector<int> setIdRmv;
 	vector<vector<int> > new_costs;// distance	
 	vector<vector<int> > times;// distance		
 	vector<vector<vector<int> > > correlatedNodes;
@@ -68,7 +70,10 @@ public:
 	bool swap2 = false;
 	bool moveor = false;
 	bool stringex = false;
-	
+	int countLS = 0;
+	std::chrono::time_point<std::chrono::system_clock> startCount, endCount;
+	std::chrono::duration<double> durFastL = std::chrono::duration<double>::zero();
+	std::chrono::duration<double> durSlowL = std::chrono::duration<double>::zero();
 	string pathOut;
 	RandomGenerator Rng;
 	~Param() {

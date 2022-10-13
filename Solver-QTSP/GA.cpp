@@ -266,7 +266,7 @@ void GA::uni(Solution* u, Solution* v, Solution* u1, Solution* v1, int numga)
         vt++;
     }*/          
     u1->calCost();          
-    if (pr->Rng.genRealInRang01_muta() > 1 - pM) {
+    if (pr->Rng.genRealInRang01_muta() >= 1 - pM) {
         /*for (int i = 1; i <= nMut; ++i)u1->exchange();
         u1->calCost();*/
         u1->pertubation(true);
@@ -369,6 +369,7 @@ void GA::InitPopu(bool isEdu = true)
 
 }
 
+
 void GA::DiversifyPopu(Solution* bestSol)
 {   
     int newPop = nPop / 3;    
@@ -384,9 +385,9 @@ void GA::DiversifyPopu(Solution* bestSol)
 
 void GA::findGasSol(int maxNumGas)
 {    
-    cout << nClose << " " << nElite << "\n";
+    /*cout << nClose << " " << nElite << "\n";
     cout << nPop << " " << delta << "\n";
-    cout << pM << "\n";
+    cout << pM << "\n";*/
     int idFa, idMo;
     Solution* bestSol = new Solution(pr);
     clock_t be = clock();
@@ -449,7 +450,7 @@ void GA::findGasSol(int maxNumGas)
             cout << "new best: " << bestSol->cost << "\n";
             /*cout << "ins type: " << bestSol->lastInsType << "\n";
             for (int i = 1; i <= n; ++i)cout << bestSol->giantT[i] << ", ";*/
-            cout << "\n";
+            //cout << "\n";
            /* pr->fileOut << "itreation: " << numga << "\n";
             pr->fileOut << "new best: " << bestSol->cost << "\n";   */         
             //pr->fileOut << (double)(clock() - be) / CLOCKS_PER_SEC << "\n";
@@ -484,15 +485,15 @@ void GA::findGasSol(int maxNumGas)
                 bestCost = bestSol->cost;
                 //cout << bestSol->cost;
                 /*cout << "Cost: " << bestSol->cost << "\n";*/
-                pr->fileOut << fixed << setprecision(2) << "Cost: " << bestSol->cost << "\n";
+                /*pr->fileOut << fixed << setprecision(2) << "Cost: " << bestSol->cost << "\n";
                 pr->fileOut << "giantTour: ";
                 for (int i = 1; i <= n; ++i)pr->fileOut << bestSol->giantT[i] << ", ";
-                pr->fileOut << "\n";               
+                pr->fileOut << "\n";               */
                 //pr->fileOut <<(double)(clock() - be) / CLOCKS_PER_SEC << "\n";
                 /*pr->fileOut << "num_iterations: " << numga << "\n";*/
             }else{
                 cout << "bug GA\n";
-                pr->fileOut << "bug GA\n";
+                //pr->fileOut << "bug GA\n";
             }
             break;
         }

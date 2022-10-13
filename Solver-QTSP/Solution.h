@@ -755,6 +755,8 @@ public:
     }
 
     void updateObj() {
+        /*pr->countLS++;
+        pr->startCount = std::chrono::system_clock::now();*/
         int oriCost = cost;
         shuffle(ordNodeLs.begin(), ordNodeLs.end(), pr->Rng.generator);
         isFinished = false;
@@ -810,13 +812,16 @@ public:
                 }
             }                     
         }
+        //pr->durFastL += std::chrono::system_clock::now() - pr->startCount;
         double oldCost = cost;        
         cvGiantT();
         calCost();       
         if (pr->use4Opt) {
+            //pr->startCount = std::chrono::system_clock::now();
             //double test4opt = doubleBridge(false, bestI1, bestI2, bestJ1, bestJ2);
             if (n <= 5)return;// not use 4-opt for 5 customers
             double test4opt = fastDoubleBridge(bestI1, bestI2, bestJ1, bestJ2);
+            //pr->durSlowL += std::chrono::system_clock::now() - pr->startCount;
             //cout << oldCost << " " << cost << " " << test4opt << "\n";
             //if (oldCost - cost > MY_EPSILON)updateObj();
             if (test4opt > -MY_EPSILON) return;
@@ -1374,7 +1379,7 @@ public:
     void pertubation(bool isLarge) {        
         if (n <= 5)return;
         //remove
-        int typeRmv = pr->Rng.getNumInRan(0, 1);
+        int typeRmv = pr->setIdRmv[pr->Rng.getNumInRan(0, pr->setIdRmv.size() - 1)];
        /* pr->minRmv = max(1, (int)(n * pr->minRateSmallRmv));
         pr->maxRmv = max(1, (int)(n * pr->maxRateSmallRmv));
         if (isLarge) {
@@ -1397,7 +1402,7 @@ public:
             break;
         }
         //insertion        
-       int typeIns = pr->Rng.getNumInRan(0, 1);              
+        int typeIns = pr->setIdIns[pr->Rng.getNumInRan(0, pr->setIdIns.size() - 1)];
        lastInsType = typeIns;       
         switch (typeIns)
         {

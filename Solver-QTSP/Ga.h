@@ -26,7 +26,7 @@ public:
 	//const int ItNI = 30000;
 	int nMut = 10;
 	//const int ItMut = 500;
-	double pMinMut = 0.3;
+	double pMinMut = 1.0;
 	const double pMaxMut = 0.6;
 	//const int delta = 83;
 	vector<Solution*> pop;// [nPop + 200];

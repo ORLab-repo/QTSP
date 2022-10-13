@@ -19,11 +19,25 @@ int seed[] = {
 	96527670,
 	10415237,
 };
-//string nameIns = "PointSet_10_5.tsp";
-string nameIns = "PointSet_165_6.tsp";
+string nameIns = "PointSet_185_9.tsp";
+//string nameIns = "PointSet_165_6.tsp";
 //string nameIns = "PointSet_200_2.tsp";
 string type = "ag";
-double rate4Opt = 0.3;
+//double rate4Opt = 0.3;
+//double rateMut = 1.0;
+//int useRandRmv = 1;
+//int useWorstRmv = 1;
+//int useBlockRmv = 0;
+//int useCheapestIns = 1;
+//int useNearestIns = 0;
+double rate4Opt = 0.2;
+double rateMut = 0.7;
+int useRandRmv = 1;
+int useWorstRmv = 0;
+int useBlockRmv = 1;
+int useCheapestIns = 1;
+int useNearestIns = 0;
+string pathIn = "";
 int main(int argc, char* argv[]) {	
 	for (int i = 1; i < argc; ++i) {		
 		if (string(argv[i]) == "-nameIns") {
@@ -33,17 +47,51 @@ int main(int argc, char* argv[]) {
 			type = argv[i + 1];
 		}
 		if (string(argv[i]) == "-rate4Opt") {
-			rate4Opt = atof(argv[i + 1]);
+			rate4Opt = atof(argv[i + 1]);		
+		}
+		if (string(argv[i]) == "-pMut") {
+			rateMut = atof(argv[i + 1]);
+		}
+		if (string(argv[i]) == "-useRandRmv") {
+			useRandRmv = atoi(argv[i + 1]);
+		}
+		if (string(argv[i]) == "-useWorstRmv") {
+			useWorstRmv = atoi(argv[i + 1]);
+		}
+		if (string(argv[i]) == "-useBlockRmv") {
+			useBlockRmv = atoi(argv[i + 1]);
+		}
+		if (string(argv[i]) == "-useCheapestIns") {
+			useCheapestIns = atoi(argv[i + 1]);
+		}
+		if (string(argv[i]) == "-useNearestIns") {
+			useNearestIns = atoi(argv[i + 1]);
+		}
+		if (string(argv[i]) == "-i") {
+			pathIn = argv[i + 1];
 		}
 	}
-	string pathIn = "PointSets\\" + nameIns;
+	cin.tie(0); cout.tie(0);	
+	ios::sync_with_stdio(0);
+	if (pathIn.empty()) {
+		pathIn = "PointSets\\" + nameIns;
+	}
+	else {
+		nameIns = pathIn;
+	}
 	string pathOut = "solution\\" + nameIns + "_" + type + ".sol";
 	cout << nameIns << "\n";
-	Param* pr = read_Ins(pathIn, type);		
-	pr->rate4Opt = rate4Opt;
-	cout << "rate 4 opt: " << pr->rate4Opt << "\n";
-	pr->fileOut.open(pathOut);
-	pr->Rng.config(seed[0]);
+	Param* pr = read_Ins(pathIn, type);			
+	pr->rateMut = rateMut;
+	pr->rate4Opt = rate4Opt;	
+	pr->setIdIns.push_back(1);
+	if (useRandRmv)pr->setIdRmv.push_back(0);
+	if (useWorstRmv)pr->setIdRmv.push_back(1);
+	if (useBlockRmv)pr->setIdRmv.push_back(2);
+	if (useCheapestIns)pr->setIdIns.insert(pr->setIdIns.begin(), 0);
+	if (useNearestIns)pr->setIdIns.push_back(2);
+	//pr->fileOut.open(pathOut);
+	//pr->Rng.config(seed[0]);
 	cout << setprecision(5) << fixed;		
 	//pr->isDebug = true;
 	/*Solution bestSol(pr);	
@@ -149,12 +197,16 @@ int main(int argc, char* argv[]) {
 		end = std::chrono::system_clock::now();
 		std::chrono::duration<double> elapsed_seconds = end - start;
 		std::time_t end_time = std::chrono::system_clock::to_time_t(end);		
-		pr->fileOut << "elapsed time: " << elapsed_seconds.count() << "s\n\n";
+		//pr->fileOut << "elapsed time: " << elapsed_seconds.count() << "s\n\n";
 		cout << "name ins: " << nameIns << " " << numRun << " " << Algo.bestCost <<" "<< elapsed_seconds.count() << "\n";
+		/*cout << "time fast ls: " << pr->durFastL.count() << "\n";
+		cout << "time slow ls: " << pr->durSlowL.count() << "\n";
+		cout << "numb of ls: " << pr->countLS << "\n";*/
 	}
-	pr->fileOut << fixed << setprecision(2) << "best run: " << minCost << "\n";
+	/*pr->fileOut << fixed << setprecision(2) << "best run: " << minCost << "\n";
 	pr->fileOut << fixed << setprecision(2) << "avg run: " << (double)sumCost / 10 << "\n";
-	pr->fileOut.close();
+	pr->fileOut.close();*/
+	cout << (double)sumCost / 100000 + minCost;    
 	//system("pause");
 	return 0;	
 }
