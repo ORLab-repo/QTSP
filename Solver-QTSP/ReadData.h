@@ -93,7 +93,7 @@ Param* read_Ins(string path, string type) {
             }
         }
     }
-
+    filein.close();
     return pr;
 }
 

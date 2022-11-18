@@ -19,7 +19,7 @@ int seed[] = {
 	96527670,
 	10415237,
 };
-string nameIns = "PointSet_185_9.tsp";
+string nameIns = "PointSet_10_4.tsp";
 //string nameIns = "PointSet_165_6.tsp";
 //string nameIns = "PointSet_200_2.tsp";
 string type = "ag";
@@ -30,10 +30,10 @@ string type = "ag";
 //int useBlockRmv = 0;
 //int useCheapestIns = 1;
 //int useNearestIns = 0;
-double rate4Opt = 0.2;
-double rateMut = 0.7;
-int useRandRmv = 1;
-int useWorstRmv = 0;
+double rate4Opt = 0.3;
+double rateMut = 0.9;
+int useRandRmv = 0;
+int useWorstRmv = 1;
 int useBlockRmv = 1;
 int useCheapestIns = 1;
 int useNearestIns = 0;
@@ -90,7 +90,7 @@ int main(int argc, char* argv[]) {
 	if (useBlockRmv)pr->setIdRmv.push_back(2);
 	if (useCheapestIns)pr->setIdIns.insert(pr->setIdIns.begin(), 0);
 	if (useNearestIns)pr->setIdIns.push_back(2);
-	//pr->fileOut.open(pathOut);
+	pr->fileOut.open(pathOut);
 	//pr->Rng.config(seed[0]);
 	cout << setprecision(5) << fixed;		
 	//pr->isDebug = true;
@@ -197,16 +197,16 @@ int main(int argc, char* argv[]) {
 		end = std::chrono::system_clock::now();
 		std::chrono::duration<double> elapsed_seconds = end - start;
 		std::time_t end_time = std::chrono::system_clock::to_time_t(end);		
-		//pr->fileOut << "elapsed time: " << elapsed_seconds.count() << "s\n\n";
+		pr->fileOut << "elapsed time: " << elapsed_seconds.count() << "s\n\n";
 		cout << "name ins: " << nameIns << " " << numRun << " " << Algo.bestCost <<" "<< elapsed_seconds.count() << "\n";
 		/*cout << "time fast ls: " << pr->durFastL.count() << "\n";
 		cout << "time slow ls: " << pr->durSlowL.count() << "\n";
 		cout << "numb of ls: " << pr->countLS << "\n";*/
 	}
-	/*pr->fileOut << fixed << setprecision(2) << "best run: " << minCost << "\n";
+	pr->fileOut << fixed << setprecision(2) << "best run: " << minCost << "\n";
 	pr->fileOut << fixed << setprecision(2) << "avg run: " << (double)sumCost / 10 << "\n";
-	pr->fileOut.close();*/
-	cout << (double)sumCost / 100000 + minCost;    
+	pr->fileOut.close();
+	//cout << (double)sumCost / 100000 + minCost;    
 	//system("pause");
 	return 0;	
 }

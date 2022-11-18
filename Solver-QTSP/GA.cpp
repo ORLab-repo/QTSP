@@ -446,8 +446,8 @@ void GA::findGasSol(int maxNumGas)
         if (bestSol->cost - pop[1]->cost > MY_EPSILON) {
             numNotCha = 0;
             equalSol(bestSol, pop[1]);
-            cout << "iteration: " << numga << "\n";
-            cout << "new best: " << bestSol->cost << "\n";
+            /*cout << "iteration: " << numga << "\n";
+            cout << "new best: " << bestSol->cost << "\n";*/
             /*cout << "ins type: " << bestSol->lastInsType << "\n";
             for (int i = 1; i <= n; ++i)cout << bestSol->giantT[i] << ", ";*/
             //cout << "\n";
@@ -470,8 +470,8 @@ void GA::findGasSol(int maxNumGas)
             if (oldBestObj - bestSol->cost > MY_EPSILON) {
                 numNotCha = 0;
                 //pr->fileOut << (double)(clock() - be) / CLOCKS_PER_SEC << "\n";
-                cout << "iteration: " << numga << "\n";
-                cout << "new best: " << bestSol->cost << "\n";
+                /*cout << "iteration: " << numga << "\n";
+                cout << "new best: " << bestSol->cost << "\n";*/
             }
         }       
         //cout<<"best obj:\n";cout<<bestSol.obj<<endl<<endl;
@@ -485,15 +485,15 @@ void GA::findGasSol(int maxNumGas)
                 bestCost = bestSol->cost;
                 //cout << bestSol->cost;
                 /*cout << "Cost: " << bestSol->cost << "\n";*/
-                /*pr->fileOut << fixed << setprecision(2) << "Cost: " << bestSol->cost << "\n";
+                pr->fileOut << fixed << setprecision(2) << "Cost: " << bestSol->cost << "\n";
                 pr->fileOut << "giantTour: ";
                 for (int i = 1; i <= n; ++i)pr->fileOut << bestSol->giantT[i] << ", ";
-                pr->fileOut << "\n";               */
+                pr->fileOut << "\n";               
                 //pr->fileOut <<(double)(clock() - be) / CLOCKS_PER_SEC << "\n";
                 /*pr->fileOut << "num_iterations: " << numga << "\n";*/
             }else{
                 cout << "bug GA\n";
-                //pr->fileOut << "bug GA\n";
+                pr->fileOut << "bug GA\n";
             }
             break;
         }
