@@ -1,6 +1,7 @@
 #pragma once
 #include "RandomGenerator.h"
 #include "Location.h"
+#define nMax 420
 
 class Location;
 class RandomGenerator;
@@ -19,11 +20,11 @@ public:
 	vector<Location> listLoc;
 	vector<vector<int> > corDis;// correlation measure	
 	//vector<vector<vector<double> >> costs;// distance	
-	double costs[204][204][204];
-	double fSup[204][204];
-	double fMain[204][204];
-	int predSup[204][204];
-	int predMain[204][204];
+	double costs[nMax][nMax][nMax];
+	double fSup[nMax][nMax];
+	double fMain[nMax][nMax];
+	int predSup[nMax][nMax];
+	int predMain[nMax][nMax];
 	vector<int> setIdIns;
 	vector<int> setIdRmv;
 	vector<vector<int> > new_costs;// distance	
@@ -51,7 +52,7 @@ public:
 	int nbIls = 100;
 	int nbF = 20;
 	int sizeSub = 10;// max size of subsequence for using concatenation
-	int TL = 1800;// time limit (default for 120-cus ins)
+	double TL = 1800;// time limit (default for 120-cus ins)
 	bool bi = true;//cheking best improvement
 	int nI = 10;
 	int nC = 10;
